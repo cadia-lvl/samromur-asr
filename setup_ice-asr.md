@@ -233,5 +233,3 @@ iv 3
 málskostnaður
 eftir úrslitum málsins að teknu tilliti til niðurstöðu í frávísunarhluta þess og með vísan til þess að samhliða þessu máli er dæmt í sex öðrum málum um sama álitaefni verður stefnanda gert að greiða stefnda málskostnað skv 1 mgr 130 gr laga nr 91 1991 um meðferð einkamála er hæfilegur þykir svo sem í dómsorði greinir að meðtöldum virðisaukaskatti
 ```
-
-
