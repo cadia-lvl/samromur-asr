@@ -116,7 +116,7 @@ for dir in $conf_dir $exp_dir $data_dir $train_dir $test_dir $local_dir $local_l
 	fi
 done
 
-for file in $mfcc_conf_file $text_file $words_file $wav_scp_file $utt2spk_file $spk2utt_file $spk2gender_file; do
+for file in $mfcc_conf_file $text_file $words_file $wav_scp_file $utt2spk_file $spk2utt_file $spk2gender_file $nonsilence_phones_file $optional_silence_file $silence_phones_file; do
 	## Check if file already exists
 	if [[ ! -e $file ]]; then
 		### If not, create new file
@@ -204,15 +204,47 @@ println "\t$uc_check_mark $words_file";
 # Create files for data/local/lang
 println "Preparing language data"
 
-if ! [ -L $lexicon_file ]; then
-	# If symbolic link doesn't exists
-	ln -s $iceandic_pronunciation_dict $lexicon_file || ( println "$uc_attention_mark Error: Cannot create a symbolic link to $iceandic_pronunciation_dict" && exit 1 ) ;
-	println "\t$uc_add Symbolic link created: $lexicon_file -> $iceandic_pronunciation_dict";
-else
-	println "\t$uc_check_mark $lexicon_file -> $iceandic_pronunciation_dict"
-fi
 
+cat $iceandic_pronunciation_dict  | sort -f | uniq > $lexicon_file;
+
+# nonsilence_phones.txt
+cut -f 2 $lexicon_file | sed 's/ /\n/g' | sort -u > $nonsilence_phones_file;
+println "\t$uc_check_mark $nonsilence_phones_file";
+
+# Add OOV symbol to lexicon
+(echo "SIL SIL" && cat $lexicon_file) > temp && mv temp $lexicon_file;
+(echo "OOV OOV" && cat $lexicon_file) > temp && mv temp $lexicon_file;
+println "\t$uc_check_mark $lexicon_file";
+
+# silence_phones.txt
+echo 'SIL' >> $silence_phones_file;
+echo 'OOV' >> $silence_phones_file;
+println "\t$uc_check_mark $silence_phones_file";
+
+# optional_silence.txt
+echo 'SIL' > $optional_silence_file;
+println "\t$uc_check_mark $optional_silence_file";
+
+# TODO: create extra_questions.txt ?
+# A Kaldi script will generate a basic extra_questions.txt file for you, but in data/lang/phones. 
+# This file “asks questions” about a phone’s contextual information by dividing the phones into two different sets. 
+# An algorithm then determines whether it is at all helpful to model that particular context.
+# The standard extra_questions.txt will contain the most common “questions.” 
+# An example would be whether the phone is word-initial vs word-final. 
+# If you do have extra questions that are not in the standard extra_questions.txt file, they would need to be added here.
+
+
+println ""
 println "Validating Data Directory"
+println "Running: utils/validate_data_dir.sh";
+println ""
 utils/validate_data_dir.sh --no-feats $train_dir || utils/fix_data_dir.sh $train_dir || ( println "$uc_attention_mark Error: Cannot execute validation" && exit 1 ) ;
+println "Finish running: utils/validate_data_dir.sh";
 
-
+# Create files for data/lang
+println ""
+println "Running: utils/prepare_lang.sh";
+println ""
+# utils/prepare_lang.sh <dict-src-dir> <oov-dict-entry> <tmp-dir> <lang-dir>
+utils/prepare_lang.sh data/local/lang 'OOV' data/local/ data/lang
+println "Finish running: utils/prepare_lang.sh";
