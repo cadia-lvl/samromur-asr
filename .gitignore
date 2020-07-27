@@ -1,4 +1,6 @@
 # Samromur specific
-./s5/data/*
-./s5/exp/*
-./s5/conf/*
+s5/data/
+s5/exp/
+s5/conf/
+s5/steps
+s5/utils
