@@ -53,8 +53,8 @@ println "Checking Input:";
 
 ## Check number of input arguments
 if [[ $# != 3 ]]; then
-    println "Usage: $0 <path-to-samromur-audio> <info-file-training> <iceandic-pronunciation-dict>"
-    exit 1;
+	println "Usage: $0 <path-to-samromur-audio> <info-file-training> <iceandic-pronunciation-dict>"
+	exit 1;
 else
 	println "\t$uc_check_mark Number of arguments"
 fi

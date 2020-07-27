@@ -33,43 +33,43 @@ start=$SECONDS
 if [[ ! -e "./data" ]]; then
 	# If directory doesn't exists, prepare data
 	println ""
-    println "### BEGIN DATA PREPARATION ###"
+	println "### BEGIN DATA PREPARATION ###"
 	timer=$SECONDS;
 
 	# Prepare Data
 	. ./prep_data.sh $samromur_audio_dir $samromur_meta_file $iceandic_pronunciation_dict;
 
 	println ""
-    println "### END DATA PREPARATION ### - Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
+	println "### END DATA PREPARATION ### - Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
 fi
 
 if [ $stage -le 1 ]; then
 
-    println ""
-    println "### BEGIN FEATURE EXTRACTION ###"
+	println ""
+	println "### BEGIN FEATURE EXTRACTION ###"
 	timer=$SECONDS;
 	# steps/make_mfcc.sh \
 	# 	--nj $num_jobs \
 	# 	--cmd "$train_cmd" \
 	# 	--mfcc-config conf/mfcc.conf \
 	# 	"$DATATRAIN" exp/make_mfcc/"$DATATRAIN" mfcc || exit 1;
-	
+
 	# steps/compute_cmvn_stats.sh "$DATATRAIN" \exp/make_mfcc/"$DATATRAIN" mfcc
 	println ""
-    println "### END FEATURE EXTRACTION ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
+	println "### END FEATURE EXTRACTION ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
 
 fi
 
 if [ $stage -le 2 ]; then
 	
-    println ""
-    println "### BEGIN TESTING ###"
+	println ""
+	println "### BEGIN TESTING ###"
 	timer=$SECONDS;
 	# steps/make_mfcc.sh --nj $num_jobs --cmd "$train_cmd" --mfcc-config conf/mfcc.conf "$DATATEST" exp/make_mfcc/"$DATATEST" mfcc
 	# steps/compute_cmvn_stats.sh "$DATATEST" exp/make_mfcc/"$DATATEST" mfcc
 
-    println ""
-    println "### END TESTING ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
+	println ""
+	println "### END TESTING ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
 fi
 
 
