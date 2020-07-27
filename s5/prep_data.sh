@@ -49,6 +49,7 @@ spinner()
 println "Running: $BASH_SOURCE";
 
 # Checking input
+println ""
 println "Checking Input:";
 
 ## Check number of input arguments
@@ -102,6 +103,7 @@ silence_phones_file="$local_lang_dir/silence_phones.txt";
 
 
 # Preparing filesystem
+println ""
 println "Preparing Filesystem:";
 
 for dir in $conf_dir $exp_dir $data_dir $train_dir $test_dir $local_dir $local_lang_dir; do
@@ -148,6 +150,7 @@ fi
 
 
 # Data preparation
+println ""
 println "Preparing configuration files"
 
 # Create MFCC config file
@@ -156,6 +159,7 @@ echo "--sample-frequency="$mfcc_sample_frequency >> $mfcc_conf_file;
 println "\t$uc_check_mark $mfcc_conf_file";
 
 
+println ""
 println "Preparing accoustic data"
 
 wav_cmd="sox - -c1 -esigned -r$sample_rate -twav - ";
@@ -202,6 +206,7 @@ println "\t$uc_check_mark $words_file";
 
 
 # Create files for data/local/lang
+println ""
 println "Preparing language data"
 
 
