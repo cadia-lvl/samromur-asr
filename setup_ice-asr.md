@@ -1,6 +1,5 @@
 <h1 align="center">
-Samrómur ASR <br/>
-Setup ICE-ASR
+Samrómur ASR - Setup ICE-ASR
 </h1>
 
 <!-- omit in toc -->
