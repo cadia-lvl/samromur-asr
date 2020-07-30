@@ -22,7 +22,7 @@ samromur_meta_file=~/samromur_recordings_1000/metadata.tsv
 # samromur_meta_file='~/samromur_recordings/metadata.tsv'
 
 # Language Data - Notice please check if paths are correct
-iceandic_pronunciation_dict=~/prondict_sr/frambordabok_asr_v1.txt
+iceandic_pronunciation_dict=$ICELANDIC_PRONDICT_ROOT/frambordabok_asr_v1.txt
 
 # Our custom print funciton 
 println() { printf "$@\n" >&2; }
