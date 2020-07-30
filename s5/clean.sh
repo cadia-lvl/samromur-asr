@@ -29,7 +29,7 @@ if [ -e "./conf" ]; then
 	println "\t$uc_minus Directory deleted: ./conf"
 fi
 
-if [ - e "./mfcc" ]; then
+if [ -e "./mfcc" ]; then
 	rm -rf ./mfcc;
 	println "\t$uc_minus Directory deleted: ./mfcc"
 fi
