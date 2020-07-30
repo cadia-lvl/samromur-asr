@@ -2,5 +2,6 @@
 s5/data/
 s5/exp/
 s5/conf/
+s5/mfcc/
 s5/steps
 s5/utils
