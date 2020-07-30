@@ -190,7 +190,8 @@ do
 	elif [[ $gender == "female" ]]; then
 		g="f";
 	else
-		g="u";
+		# I tried using u, but then i get Error: Mal-formed spk2gender file
+		g="f";
 	fi
 	echo "$utt_id $g" >> $spk2gender_file;
 done &
