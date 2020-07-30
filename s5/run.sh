@@ -8,9 +8,9 @@
 . ./path.sh
 . ./cmd.sh
 
-stage=0
+stage=1
 num_threads=4
-num_jobs=8
+num_jobs=16
 minibatch_size=128
 
 # Acoustic Data - Notice please check if paths are correct
@@ -48,13 +48,19 @@ if [ $stage -le 1 ]; then
 	println ""
 	println "### BEGIN FEATURE EXTRACTION ###"
 	timer=$SECONDS;
-	# steps/make_mfcc.sh \
-	# 	--nj $num_jobs \
-	# 	--cmd "$train_cmd" \
-	# 	--mfcc-config conf/mfcc.conf \
-	# 	"$DATATRAIN" exp/make_mfcc/"$DATATRAIN" mfcc || exit 1;
 
-	# steps/compute_cmvn_stats.sh "$DATATRAIN" \exp/make_mfcc/"$DATATRAIN" mfcc
+	mfcc_dir=mfcc;
+	data_train=data/train;
+
+	steps/make_mfcc.sh \
+		--nj $num_jobs \
+		--cmd "$train_cmd" \
+		--mfcc-config conf/mfcc.conf \
+		"$data_train" \
+		exp/make_mfcc/"$data_train" \
+		$mfcc_dir || exit 1;
+
+	steps/compute_cmvn_stats.sh "$DATATRAIN" \exp/make_mfcc/"$DATATRAIN" mfcc
 	println ""
 	println "### END FEATURE EXTRACTION ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
 
