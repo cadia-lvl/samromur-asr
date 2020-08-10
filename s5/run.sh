@@ -8,7 +8,7 @@
 . ./path.sh
 . ./cmd.sh
 
-stage=1
+stage=0
 num_threads=4
 num_jobs=16
 minibatch_size=128
@@ -18,8 +18,8 @@ samromur_audio_dir=~/samromur_recordings_1000/audio
 samromur_meta_file=~/samromur_recordings_1000/metadata.tsv
 
 # TODO: Use instead when ready - Samromur Corpus
-# samromur_audio_dir='~/samromur_recordings/audio'
-# samromur_meta_file='~/samromur_recordings/metadata.tsv'
+# samromur_audio_dir=~/samromur_recordings/audio
+# samromur_meta_file=~/samromur_recordings/metadata.tsv
 
 # Language Data - Notice please check if paths are correct
 iceandic_pronunciation_dict=$ICELANDIC_PRONDICT_ROOT/frambordabok_asr_v1.txt
