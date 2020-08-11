@@ -66,60 +66,16 @@ if [ $stage -le 1 ]; then
 
 fi
 
-if [ $stage -le 2 ]; then
-	
-	println ""
-	println "### BEGIN TESTING ###"
-	timer=$SECONDS;
-	# steps/make_mfcc.sh --nj $num_jobs --cmd "$train_cmd" --mfcc-config conf/mfcc.conf "$DATATEST" exp/make_mfcc/"$DATATEST" mfcc
-	# steps/compute_cmvn_stats.sh "$DATATEST" exp/make_mfcc/"$DATATEST" mfcc
-
-	println ""
-	println "### END TESTING ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
-fi
-
-
-
 # if [ $stage -le 2 ]; then
-# 	println "Extracting features for test."
-# 	steps/make_mfcc.sh --nj $num_jobs --cmd "$train_cmd" --mfcc-config conf/mfcc.conf "$DATATEST" exp/make_mfcc/"$DATATEST" mfcc
-# 	steps/compute_cmvn_stats.sh "$DATATEST" exp/make_mfcc/"$DATATEST" mfcc
-# fi
+	
+# 	println ""
+# 	println "### BEGIN TESTING ###"
+# 	timer=$SECONDS;
 
-# if [ ! -d data/lang ]; then
-#     println "Unpacking data/lang.tar.gz"
-#     mkdir data/lang
-#     tar xzf data/lang.tar.gz -C data
-# fi
+# 	# steps/compute_cmvn_stats.sh "$data_train" exp/make_mfcc/"$data_test" mfcc
 
-# if [ ! -d data/lang_bi_small ]; then
-#     println "Unpacking data/lang_bi_small.tar.gz"
-#     mkdir data/lang_bi_small
-#     tar xzf data/lang_bi_small.tar.gz -C data
-# fi
-
-# if [ $stage -le 3 ]; then
-# 	println "Training LDA MLLT."
-# 	./local/train_lda_mllt.sh "$DATATRAIN" "$DATATEST"
-# fi
-
-# if [ $stage -le 4 ]; then
-# 	println "Preparing tdnn-lstm training"
-# 	./local/chain/prepare_tdnn_lstm.sh
-# fi
-
-# if [ $stage -le 5 ]; then
-# 	println "Training tdnn-lstm model"
-# 	./local/online/run_tdnn_lstm.sh
-# fi
-
-
-# if [ $stage -le 6 ]; then
-# 	println "Decoding test set using tdnn-lstm trained data"
-# 	./local/decode_tdnn_lstm.sh "$DATATEST" exp/chain/tdnn_lstm/graph_bi_small
-
-# 	println "Scoring decoding results"
-# 	./local/score.sh --cmd "$decode_cmd" "$DATATEST" exp/chain/tdnn_lstm/graph_bi_small exp/chain/tdnn_lstm/decode_{$DATATEST}
+# 	println ""
+# 	println "### END TESTING ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
 # fi
 
 println ""
