@@ -60,7 +60,7 @@ if [ $stage -le 1 ]; then
 		exp/make_mfcc/"$data_train" \
 		$mfcc_dir || exit 1;
 
-	steps/compute_cmvn_stats.sh "$DATATRAIN" \exp/make_mfcc/"$DATATRAIN" mfcc
+	steps/compute_cmvn_stats.sh "$data_train" \exp/make_mfcc/"$data_train" mfcc
 	println ""
 	println "### END FEATURE EXTRACTION ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
 

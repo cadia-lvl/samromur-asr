@@ -75,7 +75,7 @@ else
 fi
 
 sample_rate=16000;
-samromur=$(readlink -f $1);
+samromur_audio_dir=$(readlink -f $1);
 info_file=$2;
 iceandic_pronunciation_dict=$3
 
@@ -164,6 +164,8 @@ println "Preparing accoustic data"
 
 wav_cmd="sox - -c1 -esigned -r$sample_rate -twav - ";
 
+
+
 cat $info_file | tail -n+2 | while IFS=$'\t' read -r utt_id filename gender age native_lang length original_sample_rate content;
 do
 	# text
@@ -173,7 +175,7 @@ do
 
 	# wav.scp
 	# <recording-id> <extended-filename>
-	echo "$utt_id $filename" >> $wav_scp_file;
+	echo "$utt_id $wav_cmd < $samromur_audio_dir/$filename | " >> $wav_scp_file;
 
 	# utt2spk
 	# <utterance-id> <speaker-id>
