@@ -10,6 +10,10 @@ Samrómur ASR
 
 <img src="https://user-images.githubusercontent.com/9976294/84160937-4042f880-aa5e-11ea-8341-9f1963e0e84e.png" alt="Cover Image" align="center"/>
 
+<h2 align="center">
+🚧 Under construction 🚧
+</h2>
+
 <!-- omit in toc -->
 ## Table of Contents
 
@@ -35,17 +39,17 @@ Samrómur ASR is a collection of scripts and recipes for the training of an ASR 
 
 You can use these guides for reference even though you do not using Terra (a cloud cluster at LVL).
 
-* [Setup Guide for Kaldi-ASR](/setup_kaldi.md)
-* [Setup Guide for Samrómur-ASR](/setup_samromur-asr.md)
+- [Setup Guide for Kaldi-ASR](/setup_kaldi.md)
+- [Setup Guide for Samrómur-ASR](/setup_samromur-asr.md)
 
 ## 4. License
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## 5. References
-* [Samrómur](https://samromur.is/)
-* [Language and Voice Lab](https://lvl.ru.is/)
-* [Reykjavik University](https://www.ru.is/)
-* [Kaldi-ASR](http://kaldi-asr.org/)
+- [Samrómur](https://samromur.is/)
+- [Language and Voice Lab](https://lvl.ru.is/)
+- [Reykjavik University](https://www.ru.is/)
+- [Kaldi-ASR](http://kaldi-asr.org/)
 
 ## 6. Contributors
 <a href="https://github.com/cadia-lvl/samromur-asr/graphs/contributors">
