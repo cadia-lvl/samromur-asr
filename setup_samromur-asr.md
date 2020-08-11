@@ -1,4 +1,4 @@
-# Setup Samromur on Terra
+# Setup Samromur-ASR
 
 ## Setup Kaldi
 
@@ -27,7 +27,7 @@ num_threads=4
 num_jobs=16
 minibatch_size=128
 ```
-
+g
 Make sure the variables are assigned to the correct directory. 
 
 <details>
