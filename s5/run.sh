@@ -35,7 +35,6 @@ if [[ ! -e "./data" ]]; then
 	println "### BEGIN DATA PREPARATION ###"
 	timer=$SECONDS;
 
-	# Prepare Data
 	. ./prep_data.sh $samromur_audio_dir $samromur_meta_file $iceandic_pronunciation_dict;
 
 	println ""
@@ -43,11 +42,12 @@ if [[ ! -e "./data" ]]; then
 fi
 
 if [ $stage -le 1 ]; then
-
+	# Extract MFCC features from the training set
 	println ""
-	println "### BEGIN FEATURE EXTRACTION ###"
+	println "### BEGIN FEATURE EXTRACTION - TRAINING SET ###"
 	timer=$SECONDS;
 
+	# Mel Frequency Cepstral Coefficient (MFCC)
 	mfcc_dir=mfcc;
 	data_train=data/train;
 
@@ -61,21 +61,31 @@ if [ $stage -le 1 ]; then
 
 	steps/compute_cmvn_stats.sh "$data_train" \exp/make_mfcc/"$data_train" mfcc
 	println ""
-	println "### END FEATURE EXTRACTION ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
-
+	println "### END FEATURE EXTRACTION - TRAINING SET ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
 fi
 
-# if [ $stage -le 2 ]; then
-	
-# 	println ""
-# 	println "### BEGIN TESTING ###"
-# 	timer=$SECONDS;
 
-# 	# steps/compute_cmvn_stats.sh "$data_train" exp/make_mfcc/"$data_test" mfcc
+if [ $stage -le 2 ]; then
+	# Extract features from the test set
+	println ""
+	println "### BEGIN FEATURE EXTRACTION - TEST SET ###"
+	timer=$SECONDS;
 
-# 	println ""
-# 	println "### END TESTING ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
-# fi
+	mfcc_dir=mfcc;
+	data_test=data/test;
+
+	steps/make_mfcc.sh \
+		--nj $num_jobs \
+		--cmd "$test_cmd" \
+		--mfcc-config conf/mfcc.conf \
+		"$data_test" \
+		exp/make_mfcc/"$data_test" \
+		$mfcc_dir || exit 1;
+
+	steps/compute_cmvn_stats.sh "$data_test" \exp/make_mfcc/"$data_test" mfcc
+	println ""
+	println "### END FEATURE EXTRACTION - TEST SET ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
+fi
 
 println ""
 println "### DONE ###"

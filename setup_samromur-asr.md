@@ -9,6 +9,43 @@ Make sure you have installed Kaldi. If not, please follow this guide:
 <!-- TODO: How to get samromur data fram Clarin and set enviroment varialbes -->
 <!-- ## Get data -->
 
+
+
+## Splitting the dataset into train and test
+
+
+<details>
+<summary>Exmple dataset (1000 samples)</summary>
+
+```console
+USER@terra:~/samromur-asr$ ./split_dataset.sh ~/samromur_recordings_1000/audio/ ~/samromur_recordings_1000/metadata.tsv 80 ~/samromur_recordings_1000
+Running: ./split_dataset.sh
+
+Checking Input:
+        ✔ Number of arguments
+        ✔ Argument types
+
+Preparing Filesystem:
+        ✔ /home/USER/samromur_recordings_1000/metadata_train.tsv
+        ✔ /home/USER/samromur_recordings_1000/metadata_test.tsv
+        ✔ /home/USER/samromur_recordings_1000
+        ✔ /home/USER/samromur_recordings_1000/train
+        ✔ /home/USER/samromur_recordings_1000/test
+
+Creating symbolic links
+
+Size of data set: 1000
+Size of training set: 800
+Size of test set: 200
+
+### DONE ###
+Total Elapsed: 0hrs 0min 2sec
+```
+</details>
+
+
+
+
 ## Navigate to s5
 
 Make sure you are in the right directory.
