@@ -3,7 +3,6 @@
 # Author: Egill Anton Hlöðversson
 # 
 # Prepares speech data, extract features, train, and test tdnn-lstm model with Kaldi-ASR.
-# 
 
 . ./path.sh
 . ./cmd.sh

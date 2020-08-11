@@ -1,3 +1,10 @@
+#!/bin/bash -eu
+#
+# Author: Egill Anton Hlöðversson
+# 
+# Removes all the directories added when the model is run.
+# WARINIG: Removes all data created
+
 uc_minus="\xE2\x9E\x96";
 println() { printf "$@\n" >&2; }
 
@@ -33,3 +40,5 @@ if [ -e "./mfcc" ]; then
 	rm -rf ./mfcc;
 	println "\t$uc_minus Directory deleted: ./mfcc"
 fi
+
+println "All generated files and directories removed."

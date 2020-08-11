@@ -1,4 +1,4 @@
-# Setup Kaldi on Terra
+# Setup Kaldi-ASR
 
 ## Assign Conda package manager to your user shell
 
