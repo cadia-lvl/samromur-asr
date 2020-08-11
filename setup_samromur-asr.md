@@ -2,7 +2,7 @@
 
 ## Setup Kaldi
 
-Make sure you have installed Kaldi. If not, please the following guide:
+Make sure you have installed Kaldi. If not, please follow this guide:
 * [Setup Guide for Kaldi-ASR](/setup_kaldi.md)
 
 
@@ -60,9 +60,8 @@ samromur_meta_file=~/samromur_recordings/metadata.tsv
 ```
 
 Now you should have successfully:
-*
-* Acoustic Model
-* trained your Lanagage 
+* created an acoustic model
+* trained your language model
 
 ## Clean directory
 
