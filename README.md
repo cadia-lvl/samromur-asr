@@ -36,7 +36,7 @@ Samrómur ASR is a collection of scripts and recipes for the training of an ASR 
 You can use these guides for reference even though you do not using Terra (a cloud cluster at LVL).
 
 * [Setup Guide for Kaldi-ASR](/setup_kaldi.md)
-* [Setup Guide for Samrómur-ASR](/setup_samromur-asr.md.md)
+* [Setup Guide for Samrómur-ASR](/setup_samromur-asr.md)
 
 ## 4. License
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
