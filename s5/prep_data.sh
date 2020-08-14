@@ -225,6 +225,7 @@ println "Validating Data Directories"
 println "Running: utils/validate_data_dir.sh";
 println "";
 utils/validate_data_dir.sh --no-feats $data_train_dir || utils/fix_data_dir.sh $data_train_dir || ( println "$uc_attention_mark Error: Cannot execute validation on $data_train_dir" && exit 1 ) ;
+println "";
 utils/validate_data_dir.sh --no-feats $data_test_dir || utils/fix_data_dir.sh $data_test_dir || ( println "$uc_attention_mark Error: Cannot execute validation on $data_test_dir" && exit 1 ) ;
 println "Finish running: utils/validate_data_dir.sh";
 
