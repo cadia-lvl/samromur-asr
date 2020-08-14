@@ -1,0 +1,289 @@
+Running: ./run.sh
+
+### BEGIN PREPARING FILESYSTEM ###
+Running: ./prep_filesystem.sh
+
+Preparing Filesystem:
+	➕ Directory created: ./conf
+	➕ Directory created: ./exp
+	➕ Directory created: ./data
+	➕ Directory created: ./data/train
+	➕ Directory created: ./data/test
+	➕ Directory created: ./data/local
+	➕ Directory created: ./data/local/lang
+	➕ Directory created: ./data/local/dict
+	➕ File created: ./conf/mfcc.conf
+	➕ File created: ./data/local/dict/corpus.txt
+	➕ File created: ./data/train/text
+	➕ File created: ./data/train/words.txt
+	➕ File created: ./data/train/wav.scp
+	➕ File created: ./data/train/utt2spk
+	➕ File created: ./data/train/spk2utt
+	➕ File created: ./data/train/spk2gender
+	➕ File created: ./data/test/text
+	➕ File created: ./data/test/words.txt
+	➕ File created: ./data/test/wav.scp
+	➕ File created: ./data/test/utt2spk
+	➕ File created: ./data/test/spk2utt
+	➕ File created: ./data/test/spk2gender
+	➕ File created: ./data/local/lang/nonsilence_phones.txt
+	➕ File created: ./data/local/lang/optional_silence.txt
+	➕ File created: ./data/local/lang/silence_phones.txt
+	➕ Symbolic link created: ./utils -> /home/egillanton/kaldi/egs/wsj/s5/utils
+	➕ Symbolic link created: ./steps -> /home/egillanton/kaldi/egs/wsj/s5/steps
+### END PREPARING FILESYSTEM ### - Elapsed: 0hrs 0min 0sec
+
+### BEGIN - SPLITTING DATASET ###
+Running: ./split_dataset.sh
+
+Checking Input:
+	✔ Number of arguments
+	✔ Argument types
+
+Preparing Filesystem:
+	➕ Directory created: ./audio
+	➕ Directory created: ./audio/train
+	➕ Directory created: ./audio/test
+	➕ File created: ./audio/metadata_train.tsv
+	➕ File created: ./audio/metadata_test.tsv
+
+Creating symbolic links
+	➕ 800 symbolic links created in: ./audio/train/
+	➕ 200 symbolic links created in: ./audio/test/
+	✔ 800 lines added to: ./audio/metadata_train.tsv
+	✔ 200 lines added to: ./audio/metadata_test.tsv
+### END - SPLITTING DATASET ### - Elapsed: 0hrs 0min 2sec
+
+### BEGIN - DATA PREPARATION ###
+Running: ./prep_data.sh
+
+Checking Input:
+	✔ Number of arguments
+	✔ Argument types
+
+Preparing configuration files
+	✔ ./conf/mfcc.conf
+
+Preparing accoustic data for the training set
+	✔ ./data/train/text
+	✔ ./data/train/wav.scp
+	✔ ./data/train/utt2spk
+	✔ ./data/train/spk2utt
+	✔ ./data/train/spk2gender
+	✔ ./data/train/words.txt
+
+Preparing language data for the training set
+	✔ ./data/local/lang/nonsilence_phones.txt
+	✔ ./data/local/lang/lexicon.txt
+	✔ ./data/local/lang/silence_phones.txt
+	✔ ./data/local/lang/optional_silence.txt
+
+Preparing accoustic data for the test set
+	✔ ./data/test/text
+	✔ ./data/test/wav.scp
+	✔ ./data/test/utt2spk
+	✔ ./data/test/spk2utt
+	✔ ./data/test/spk2gender
+
+Validating Data Directories
+Running: utils/validate_data_dir.sh
+
+utils/validate_data_dir.sh: file ./data/train/utt2spk is not in sorted order or has duplicates
+utils/fix_data_dir.sh: file ./data/train/utt2spk is not in sorted order or not unique, sorting it
+utils/fix_data_dir.sh: file ./data/train/spk2utt is not in sorted order or not unique, sorting it
+utils/fix_data_dir.sh: file ./data/train/text is not in sorted order or not unique, sorting it
+utils/fix_data_dir.sh: file ./data/train/wav.scp is not in sorted order or not unique, sorting it
+utils/fix_data_dir.sh: file ./data/train/spk2gender is not in sorted order or not unique, sorting it
+fix_data_dir.sh: kept all 799 utterances.
+fix_data_dir.sh: old files are kept in ./data/train/.backup
+utils/validate_data_dir.sh: file ./data/test/utt2spk is not in sorted order or has duplicates
+utils/fix_data_dir.sh: file ./data/test/utt2spk is not in sorted order or not unique, sorting it
+utils/fix_data_dir.sh: file ./data/test/spk2utt is not in sorted order or not unique, sorting it
+utils/fix_data_dir.sh: file ./data/test/text is not in sorted order or not unique, sorting it
+utils/fix_data_dir.sh: file ./data/test/wav.scp is not in sorted order or not unique, sorting it
+utils/fix_data_dir.sh: file ./data/test/spk2gender is not in sorted order or not unique, sorting it
+fix_data_dir.sh: kept all 199 utterances.
+fix_data_dir.sh: old files are kept in ./data/test/.backup
+Finish running: utils/validate_data_dir.sh
+
+Running: utils/prepare_lang.sh
+
+utils/prepare_lang.sh data/local/lang OOV data/local/ data/lang
+Checking data/local/lang/silence_phones.txt ...
+--> reading data/local/lang/silence_phones.txt
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> data/local/lang/silence_phones.txt is OK
+
+Checking data/local/lang/optional_silence.txt ...
+--> reading data/local/lang/optional_silence.txt
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> data/local/lang/optional_silence.txt is OK
+
+Checking data/local/lang/nonsilence_phones.txt ...
+--> reading data/local/lang/nonsilence_phones.txt
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> data/local/lang/nonsilence_phones.txt is OK
+
+Checking disjoint: silence_phones.txt, nonsilence_phones.txt
+--> disjoint property is OK.
+
+Checking data/local/lang/lexicon.txt
+--> reading data/local/lang/lexicon.txt
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> data/local/lang/lexicon.txt is OK
+
+Checking data/local/lang/extra_questions.txt ...
+--> data/local/lang/extra_questions.txt is empty (this is OK)
+--> SUCCESS [validating dictionary directory data/local/lang]
+
+**Creating data/local/lang/lexiconp.txt from data/local/lang/lexicon.txt
+prepare_lang.sh: validating output directory
+utils/validate_lang.pl data/lang
+Checking existence of separator file
+separator file data/lang/subword_separator.txt is empty or does not exist, deal in word case.
+Checking data/lang/phones.txt ...
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> data/lang/phones.txt is OK
+
+Checking words.txt: #0 ...
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> data/lang/words.txt is OK
+
+Checking disjoint: silence.txt, nonsilence.txt, disambig.txt ...
+--> silence.txt and nonsilence.txt are disjoint
+--> silence.txt and disambig.txt are disjoint
+--> disambig.txt and nonsilence.txt are disjoint
+--> disjoint property is OK
+
+Checking sumation: silence.txt, nonsilence.txt, disambig.txt ...
+--> found no unexplainable phones in phones.txt
+
+Checking data/lang/phones/context_indep.{txt, int, csl} ...
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> 10 entry/entries in data/lang/phones/context_indep.txt
+--> data/lang/phones/context_indep.int corresponds to data/lang/phones/context_indep.txt
+--> data/lang/phones/context_indep.csl corresponds to data/lang/phones/context_indep.txt
+--> data/lang/phones/context_indep.{txt, int, csl} are OK
+
+Checking data/lang/phones/nonsilence.{txt, int, csl} ...
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> 232 entry/entries in data/lang/phones/nonsilence.txt
+--> data/lang/phones/nonsilence.int corresponds to data/lang/phones/nonsilence.txt
+--> data/lang/phones/nonsilence.csl corresponds to data/lang/phones/nonsilence.txt
+--> data/lang/phones/nonsilence.{txt, int, csl} are OK
+
+Checking data/lang/phones/silence.{txt, int, csl} ...
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> 10 entry/entries in data/lang/phones/silence.txt
+--> data/lang/phones/silence.int corresponds to data/lang/phones/silence.txt
+--> data/lang/phones/silence.csl corresponds to data/lang/phones/silence.txt
+--> data/lang/phones/silence.{txt, int, csl} are OK
+
+Checking data/lang/phones/optional_silence.{txt, int, csl} ...
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> 1 entry/entries in data/lang/phones/optional_silence.txt
+--> data/lang/phones/optional_silence.int corresponds to data/lang/phones/optional_silence.txt
+--> data/lang/phones/optional_silence.csl corresponds to data/lang/phones/optional_silence.txt
+--> data/lang/phones/optional_silence.{txt, int, csl} are OK
+
+Checking data/lang/phones/disambig.{txt, int, csl} ...
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> 6 entry/entries in data/lang/phones/disambig.txt
+--> data/lang/phones/disambig.int corresponds to data/lang/phones/disambig.txt
+--> data/lang/phones/disambig.csl corresponds to data/lang/phones/disambig.txt
+--> data/lang/phones/disambig.{txt, int, csl} are OK
+
+Checking data/lang/phones/roots.{txt, int} ...
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> 60 entry/entries in data/lang/phones/roots.txt
+--> data/lang/phones/roots.int corresponds to data/lang/phones/roots.txt
+--> data/lang/phones/roots.{txt, int} are OK
+
+Checking data/lang/phones/sets.{txt, int} ...
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> 60 entry/entries in data/lang/phones/sets.txt
+--> data/lang/phones/sets.int corresponds to data/lang/phones/sets.txt
+--> data/lang/phones/sets.{txt, int} are OK
+
+Checking data/lang/phones/extra_questions.{txt, int} ...
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> 9 entry/entries in data/lang/phones/extra_questions.txt
+--> data/lang/phones/extra_questions.int corresponds to data/lang/phones/extra_questions.txt
+--> data/lang/phones/extra_questions.{txt, int} are OK
+
+Checking data/lang/phones/word_boundary.{txt, int} ...
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> 242 entry/entries in data/lang/phones/word_boundary.txt
+--> data/lang/phones/word_boundary.int corresponds to data/lang/phones/word_boundary.txt
+--> data/lang/phones/word_boundary.{txt, int} are OK
+
+Checking optional_silence.txt ...
+--> reading data/lang/phones/optional_silence.txt
+--> data/lang/phones/optional_silence.txt is OK
+
+Checking disambiguation symbols: #0 and #1
+--> data/lang/phones/disambig.txt has "#0" and "#1"
+--> data/lang/phones/disambig.txt is OK
+
+Checking topo ...
+
+Checking word_boundary.txt: silence.txt, nonsilence.txt, disambig.txt ...
+--> data/lang/phones/word_boundary.txt doesn't include disambiguation symbols
+--> data/lang/phones/word_boundary.txt is the union of nonsilence.txt and silence.txt
+--> data/lang/phones/word_boundary.txt is OK
+
+Checking word-level disambiguation symbols...
+--> data/lang/phones/wdisambig.txt exists (newer prepare_lang.sh)
+Checking word_boundary.int and disambig.int
+--> generating a 2 word/subword sequence
+--> resulting phone sequence from L.fst corresponds to the word sequence
+--> L.fst is OK
+--> generating a 67 word/subword sequence
+--> resulting phone sequence from L_disambig.fst corresponds to the word sequence
+--> L_disambig.fst is OK
+
+Checking data/lang/oov.{txt, int} ...
+--> text seems to be UTF-8 or ASCII, checking whitespaces
+--> text contains only allowed whitespaces
+--> 1 entry/entries in data/lang/oov.txt
+--> data/lang/oov.int corresponds to data/lang/oov.txt
+--> data/lang/oov.{txt, int} are OK
+
+--> data/lang/L.fst is olabel sorted
+--> data/lang/L_disambig.fst is olabel sorted
+--> SUCCESS [validating lang directory data/lang]
+Finish running: utils/prepare_lang.sh
+### END - DATA PREPARATION ### - Elapsed: 0hrs 0min 36sec
+
+### BEGIN - FEATURE EXTRACTION ###
+steps/make_mfcc.sh --nj 16 --cmd utils/slurm.pl --mfcc-config conf/mfcc.conf ./data/train exp/make_mfcc/./data/train mfcc
+utils/validate_data_dir.sh: Successfully validated data-directory ./data/train
+steps/make_mfcc.sh: [info]: no segments file exists: assuming wav.scp indexed by utterance.
+steps/make_mfcc.sh: Succeeded creating MFCC features for train
+steps/compute_cmvn_stats.sh ./data/train exp/make_mfcc/./data/train mfcc
+Succeeded creating CMVN stats for train
+steps/make_mfcc.sh --nj 16 --cmd utils/slurm.pl --mfcc-config conf/mfcc.conf ./data/test exp/make_mfcc/./data/test mfcc
+utils/validate_data_dir.sh: Successfully validated data-directory ./data/test
+steps/make_mfcc.sh: [info]: no segments file exists: assuming wav.scp indexed by utterance.
+steps/make_mfcc.sh: Succeeded creating MFCC features for test
+steps/compute_cmvn_stats.sh ./data/test exp/make_mfcc/./data/test mfcc
+Succeeded creating CMVN stats for test
+### END - FEATURE EXTRACTION - TRAINING SET ### -Elapsed: 0hrs 0min 20sec
+
+### DONE ###
+Total Elapsed: 0hrs 0min 58sec

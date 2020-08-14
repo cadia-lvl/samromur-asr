@@ -7,7 +7,7 @@ uc_minus="\xE2\x9E\x96";
 uc_stars="\xe2\x9c\xa8";
 
 # Our custom print funciton 
-println() { printf "$@\n" >&2; }
+println() { printf "$@\n"; }
 path() { eval ${$@/text//\/\//\/}; }
 
 # Spinner from http://fitnr.com/showing-a-bash-spinner.html
@@ -18,10 +18,10 @@ spinner()
     local spinstr='|/-\'
     while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
         local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
+        printf " [%c]  " "$spinstr" >&2;
         local spinstr=$temp${spinstr%"$temp"}
         sleep $delay
-        printf "\b\b\b\b\b\b"
+        printf "\b\b\b\b\b\b" >&2;
     done
-    printf "    \b\b\b\b"
+    printf "    \b\b\b\b" >&2;
 }

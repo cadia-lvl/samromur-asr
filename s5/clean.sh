@@ -5,11 +5,13 @@
 # Removes all the directories added when the model is run.
 # WARINIG: Removes all data created
 
-uc_minus="\xE2\x9E\x96";
-println() { printf "$@\n" >&2; }
+. ./utils.sh
 
-println "Running: $0"
-println "Cleaning up current working directory"
+uc_minus="\xE2\x9E\x96";
+
+println "Running: $0";
+println "";
+println "Cleaning up current working directory";
 
 if [ -L "./utils" ]; then
 	rm  ./utils;
@@ -41,4 +43,10 @@ if [ -e "./mfcc" ]; then
 	println "\t$uc_minus Directory deleted: ./mfcc"
 fi
 
+if [ -e "./audio" ]; then
+	rm -rf ./audio;
+	println "\t$uc_minus Directory deleted: ./audio"
+fi
+
+println "";
 println "All generated files and directories removed."

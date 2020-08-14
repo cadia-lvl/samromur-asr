@@ -28,12 +28,12 @@ test_utt2spk_file="$data_test_dir/utt2spk";
 test_spk2utt_file="$data_test_dir/spk2utt";
 test_spk2gender_file="$data_test_dir/spk2gender";
 
-corpus_file="$data_local_lang_dir/corpus.txt"
+corpus_file="$data_local_dict_dir/corpus.txt"
 
-lexicon_file="$data_local_dict_dir/lexicon.txt";
-nonsilence_phones_file="$data_local_dict_dir/nonsilence_phones.txt";
-optional_silence_file="$data_local_dict_dir/optional_silence.txt";
-silence_phones_file="$data_local_dict_dir/silence_phones.txt";
+lexicon_file="$data_local_lang_dir/lexicon.txt";
+nonsilence_phones_file="$data_local_lang_dir/nonsilence_phones.txt";
+optional_silence_file="$data_local_lang_dir/optional_silence.txt";
+silence_phones_file="$data_local_lang_dir/silence_phones.txt";
 
 
 # Preparing filesystem
@@ -108,11 +108,3 @@ if ! [ -L "./steps" ]; then
 else
 	println "\t$uc_check_mark ./steps -> $KALDI_ROOT/egs/wsj/s5/steps"
 fi
-
-# Create MFCC config file
-mfcc_use_energy=false
-mfcc_sample_frequency=16000
-
-echo "--use-energy="$mfcc_use_energy >> $mfcc_conf_file;
-echo "--sample-frequency="$mfcc_sample_frequency >> $mfcc_conf_file;
-println "\t$uc_check_mark $mfcc_conf_file";
