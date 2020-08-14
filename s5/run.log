@@ -250,10 +250,10 @@ Checking word_boundary.txt: silence.txt, nonsilence.txt, disambig.txt ...
 Checking word-level disambiguation symbols...
 --> data/lang/phones/wdisambig.txt exists (newer prepare_lang.sh)
 Checking word_boundary.int and disambig.int
---> generating a 2 word/subword sequence
+--> generating a 60 word/subword sequence
 --> resulting phone sequence from L.fst corresponds to the word sequence
 --> L.fst is OK
---> generating a 67 word/subword sequence
+--> generating a 34 word/subword sequence
 --> resulting phone sequence from L_disambig.fst corresponds to the word sequence
 --> L_disambig.fst is OK
 
@@ -277,13 +277,14 @@ steps/make_mfcc.sh: [info]: no segments file exists: assuming wav.scp indexed by
 steps/make_mfcc.sh: Succeeded creating MFCC features for train
 steps/compute_cmvn_stats.sh ./data/train exp/make_mfcc/./data/train mfcc
 Succeeded creating CMVN stats for train
+
 steps/make_mfcc.sh --nj 16 --cmd utils/slurm.pl --mfcc-config conf/mfcc.conf ./data/test exp/make_mfcc/./data/test mfcc
 utils/validate_data_dir.sh: Successfully validated data-directory ./data/test
 steps/make_mfcc.sh: [info]: no segments file exists: assuming wav.scp indexed by utterance.
 steps/make_mfcc.sh: Succeeded creating MFCC features for test
 steps/compute_cmvn_stats.sh ./data/test exp/make_mfcc/./data/test mfcc
 Succeeded creating CMVN stats for test
-### END - FEATURE EXTRACTION - TRAINING SET ### -Elapsed: 0hrs 0min 20sec
+### END - FEATURE EXTRACTION ### -Elapsed: 0hrs 0min 21sec
 
 ### DONE ###
-Total Elapsed: 0hrs 0min 58sec
+Total Elapsed: 0hrs 0min 59sec

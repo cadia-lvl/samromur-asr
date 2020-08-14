@@ -90,11 +90,13 @@ if [ $stage -le 2 ]; then
 	steps/make_mfcc.sh --nj $num_jobs --cmd "$train_cmd" --mfcc-config conf/mfcc.conf "$data_train" exp/make_mfcc/"$data_train" $mfcc_dir || exit 1;
 	steps/compute_cmvn_stats.sh "$data_train" \exp/make_mfcc/"$data_train" mfcc;
 
+	println "";
+
 	# Test dataset
 	steps/make_mfcc.sh --nj $num_jobs --cmd "$train_cmd" --mfcc-config conf/mfcc.conf "$data_test" exp/make_mfcc/"$data_test" $mfcc_dir || exit 1;
 	steps/compute_cmvn_stats.sh "$data_test" \exp/make_mfcc/"$data_test" mfcc;
 
-	println "### END - FEATURE EXTRACTION - TRAINING SET ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
+	println "### END - FEATURE EXTRACTION ### -Elapsed: $((($SECONDS - timer) / 3600))hrs $(((($SECONDS - timer) / 60) % 60))min $((($SECONDS - timer) % 60))sec";
 fi
 
 println ""
