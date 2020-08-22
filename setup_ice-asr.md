@@ -1,11 +1,10 @@
-<h1 align="center">
-Samrómur ASR - Setup ICE-ASR
-</h1>
+<!-- omit in toc -->
+# Setup LVL ICE-ASR
 
 <!-- omit in toc -->
 ## Introduction
 
-We will be using [ICE-ASR](https://github.com/cadia-lvl/ice-asr) as the fondation for our Kaldi-ASR recepie.
+We will be using [LVL ICE-ASR](https://github.com/cadia-lvl/ice-asr) as the fondation for our Kaldi-ASR recepie.
 Since ICE-ASR hasn't been updated since 2017, it wont run succesfully on top of the latest version of Málrómur on Málföng.is.
 
 Please follow the instructions below for latest setup:
@@ -19,8 +18,8 @@ Please follow the instructions below for latest setup:
 - [1. Activate your Conda environment](#1-activate-your-conda-environment)
 - [2. Download ICE-ASR](#2-download-ice-asr)
 - [3. Download General Icelandic Pronunciation Dictionary For ASR](#3-download-general-icelandic-pronunciation-dictionary-for-asr)
-	- [3.1. Extract the prondict_sr.zip](#31-extract-the-prondict_srzip)
-	- [3.2. Creating the "lang" directory](#32-creating-the-lang-directory)
+  - [3.1. Extract the prondict_sr.zip](#31-extract-the-prondict_srzip)
+  - [3.2. Creating the "lang" directory](#32-creating-the-lang-directory)
 - [4. Download the Malromur Corpus (ísl. Málrómur)](#4-download-the-malromur-corpus-ísl-málrómur)
 - [5. Extract the malromur.zip](#5-extract-the-malromurzip)
 - [6. Select the data to be used](#6-select-the-data-to-be-used)
