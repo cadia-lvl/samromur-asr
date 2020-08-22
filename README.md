@@ -10,10 +10,6 @@ LVL Samrómur ASR
 
 <img src="https://user-images.githubusercontent.com/9976294/84160937-4042f880-aa5e-11ea-8341-9f1963e0e84e.png" alt="Cover Image" align="center"/>
 
-<h2 align="center">
-🚧 Under construction 🚧
-</h2>
-
 <!-- omit in toc -->
 ## Table of Contents
 
