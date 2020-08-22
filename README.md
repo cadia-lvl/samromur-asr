@@ -1,11 +1,11 @@
 <h1 align="center">
-Samrómur ASR
+LVL Samrómur ASR
 </h1>
 
 <p align="center"><i>
   An automatic speech recognition environment for Samrómur speech corpus. <br/>
   Center for Analysis and Design of Intelligent Agents, Language and Voice Lab <br/>
-  Reykjavik University - School of Computer Science, Menntavegur 1, IS-101 Reykjavik, Iceland
+  <a href="https://ru.is">Reykjavik University</a>
 </i></p>
 
 <img src="https://user-images.githubusercontent.com/9976294/84160937-4042f880-aa5e-11ea-8341-9f1963e0e84e.png" alt="Cover Image" align="center"/>
