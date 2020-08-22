@@ -33,7 +33,7 @@ Samrómur ASR is a collection of scripts and recipes for the training of an ASR 
 
 ## 3. Setup
 
-You can use these guides for reference even though you do not using Terra (a cloud cluster at LVL).
+You can use these guides for reference even though you do not use Terra (a cloud cluster at LVL).
 
 - [Setup Guide for Kaldi-ASR](/setup_kaldi.md)
 - [Setup Guide for Samrómur-ASR](/setup_samromur-asr.md)
