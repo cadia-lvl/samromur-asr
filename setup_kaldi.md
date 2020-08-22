@@ -1,4 +1,4 @@
-# Setup Kaldi on Terra
+# Setup Kaldi-ASR
 
 ## Assign Conda package manager to your user shell
 
@@ -6,7 +6,7 @@
 USER@terra:~$ source /data/tools/anaconda/etc/profile.d/conda.sh
 ```
 
-## Create a Conda virtual enviroment
+## Create a Conda virtual environment
 
 ```console
 USER@terra:~$ conda create --name kaldi-env python=2.7
@@ -18,7 +18,7 @@ USER@terra:~$ conda create --name kaldi-env python=2.7
 USER@terra:~$ conda init
 ```
 
-## Activate your Conda enviroment
+## Activate your Conda environment
 
 ```console
 USER@terra:~$ conda activate kaldi-env
@@ -42,7 +42,7 @@ USER@terra:~$ conda activate kaldi-env
 (kaldi-env) USER@terra:~$ wget -P /home/USER http://prdownloads.sourceforge.net/swig/swig-4.0.0.tar.gz
 ```
 
-If it dosnt work, manually place the file to your user root directory /home/USER/
+If it doesn't work, manually place the file to your user root directory /home/USER/
 
 ## Install Swig
 
@@ -94,7 +94,7 @@ kaldi  scratch  swig-4.0.0  work
 (kaldi-env) USER@terra:~/kaldi/tools$ ln -s cub-1.8.0/ cub
 ```
 
-## Swith Directories
+## Switch Directories
 
 ```console
 (kaldi-env) USER@terra:~/kaldi/tools$ cd ../src/
@@ -117,7 +117,7 @@ If you want to check out the number of available cores on your system run:
 32
 ```
 
-In our case, Terra has 32 cores available, but  8 cores seems to be sufficent for this task.
+In our case, Terra has 32 cores available, but  8 cores seem to be sufficient for this task.
 
 ## With output file
 
@@ -125,7 +125,7 @@ In our case, Terra has 32 cores available, but  8 cores seems to be sufficent fo
 (kaldi-env) USER@terra:~/kaldi/src$ make -j clean depend 2&> compile_output.txt; make -j <NCPU> &&> compile_output.txt
 ```
 
-## Without output file
+## Without the output file
 
 ```console
 (kaldi-env) USER@terra:~/kaldi/src$ make -j clean depend; make -j <NCPU>
@@ -146,5 +146,5 @@ Done
 %WER 0.00 [ 0 / 232, 0 ins, 0 del, 0 sub ] exp/mono0a/decode_test_yesno/wer_10_0.0
 ```
 
-Feel free to look at the following guide if you want a another step by step guide to setup Kaldi:
+Feel free to look at the following guide if you want another step by step guide to setup Kaldi:
 <http://jrmeyer.github.io/asr/2016/01/26/Installing-Kaldi.html>
