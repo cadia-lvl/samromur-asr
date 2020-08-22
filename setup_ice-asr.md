@@ -35,6 +35,8 @@ Please follow the instructions below for latest setup:
 
 ## 1. Activate your Conda environment
 
+Make sure you have followed [Setup Kaldi-ASR](setup_kaldi.md) guide, and you have Conda installed and have created a conda environment with the name `kaldi-env`.
+
 ```console
 USER@terra:~$ conda activate kaldi-env
 ```
