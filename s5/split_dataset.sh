@@ -5,7 +5,7 @@
 # Splits a dataset into training and test set
 # Made for Samrómur-ASR dataset
 # Example of usage
-# ./split_dataset.sh ~/samromur_recordings_1000/audio/ ~/samromur_recordings_1000/metadata.tsv 80 ~/samromur_recordings_1000
+# ./split_dataset.sh ~/samromur/audio/ ~/samromur1000/metadata.tsv 80 ~/samromur
 
 . ./utils.sh
 
@@ -82,6 +82,7 @@ let test_set_size=$data_set_size-$training_set_size;
 println ""
 println "Creating symbolic links"
 
+#To do Add spinner
 # Training dataset
 cat $meta_file | head -n $(($training_set_size+1)) | tail -n+2  | while IFS=$'\t' read -r utt_id filename gender age native_lang length original_sample_rate content;
 do

@@ -25,3 +25,13 @@ spinner()
     done
     printf "    \b\b\b\b" >&2;
 }
+
+message () {
+  level=$1; shift
+  if [ $level == "error" ]; then
+      msg="$bldred$@$txtrst"
+  else
+      msg="$@"
+  fi
+  echo -e "[$(timestamp)] [$level] $0: $msg" >&2
+}
