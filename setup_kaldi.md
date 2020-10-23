@@ -1,6 +1,6 @@
 # Setup Kaldi-ASR
 
-This setup guide is tailord for setup on Terra (the compute cluter in LVL). Feel free to look at the following guide if you want another step by step guide to setup Kaldi: <http://jrmeyer.github.io/asr/2016/01/26/Installing-Kaldi.html>
+This setup guide is tailord for setup on Terra (the compute cluster in LVL). Feel free to look at the following guide if you want another step by step guide to setup Kaldi: <http://jrmeyer.github.io/asr/2016/01/26/Installing-Kaldi.html>
 
 
 ## Assign Conda package manager to your user shell
