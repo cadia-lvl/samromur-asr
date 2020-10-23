@@ -70,7 +70,7 @@ kaldi  scratch  swig-4.0.0  work
 ## Install Kaldi
 
 ```console
-(kaldi-env) USER@terra:~$ cd ~/kaldi/src
+(kaldi-env) USER@terra:~$ cd ~/kaldi/tools
 (kaldi-env) USER@terra:~/kaldi/tools$ make
 (kaldi-env) USER@terra:~/kaldi/tools$ cd ../src/
 (kaldi-env) USER@terra:~/kaldi/src$ make
