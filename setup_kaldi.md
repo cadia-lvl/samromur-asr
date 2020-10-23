@@ -99,29 +99,13 @@ kaldi  scratch  swig-4.0.0  work
 (kaldi-env) USER@terra:~/kaldi/tools$ extras/install_openblas.sh
 (kaldi-env) USER@terra:~/kaldi/tools$ cd ../src/
 (kaldi-env) USER@terra:~/kaldi/src$ CXX=g++-7 ./configure --mathlib=OPENBLAS  --cudatk-dir=/usr/local/cuda-10.0
-```
-
-### With output file
-
-```console
-(kaldi-env) USER@terra:~/kaldi/src$ make -j clean depend 2&> compile_output.txt; make -j <NCPU> &&> compile_output.txt
-```
-
-### Without the output file
-
-```console
 (kaldi-env) USER@terra:~/kaldi/src$ make -j clean depend; make -j <NCPU>
-```
 
+## Verify that build was successful
 
-### Verify that build was successful
+Look at the output and verify that the build was successful
 
-```console
-(kaldi-env) USER@terra:~/kaldi/src$ tail -2 make_output.txt
-Done
-```
-
-## Test Example Project
+### Test Example Project
 
 ```console
 (kaldi-env) USER@terra:~/kaldi/src$ cd ../egs/yesno/s5/
