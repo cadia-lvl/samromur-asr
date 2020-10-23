@@ -103,7 +103,7 @@ kaldi  scratch  swig-4.0.0  work
 ```
 ## Verify that build was successful
 
-Look at the output and verify that the build was successful
+The build process can take some time. Look at the output when it's done and verify that the build was successful.
 
 ## Test Example Project
 
