@@ -72,7 +72,7 @@ If it doesn't work, manually place the file to your user root directory /home/US
 ## Install Cub
 
 ```console
-(kaldi-env) USER@terra:~/kaldi/tools$ cp  ../../../../data/tools/kaldi/tools/cub-1.8.0.zip .
+(kaldi-env) USER@terra:~/kaldi/tools$ cp  /data/tools/kaldi/tools/cub-1.8.0.zip .
 (kaldi-env) USER@terra:~/kaldi/tools$ unzip -oq cub-1.8.0.zip
 (kaldi-env) USER@terra:~/kaldi/tools$ rm -f cub-1.8.0.zip
 (kaldi-env) USER@terra:~/kaldi/tools$ ln -s cub-1.8.0/ cub
