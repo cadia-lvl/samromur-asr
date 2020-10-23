@@ -100,7 +100,7 @@ kaldi  scratch  swig-4.0.0  work
 (kaldi-env) USER@terra:~/kaldi/tools$ cd ../src/
 (kaldi-env) USER@terra:~/kaldi/src$ CXX=g++-7 ./configure --mathlib=OPENBLAS  --cudatk-dir=/usr/local/cuda-10.0
 (kaldi-env) USER@terra:~/kaldi/src$ make -j clean depend; make -j <NCPU>
-
+```
 ## Verify that build was successful
 
 Look at the output and verify that the build was successful
