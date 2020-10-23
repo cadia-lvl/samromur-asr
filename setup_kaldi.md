@@ -71,9 +71,9 @@ kaldi  scratch  swig-4.0.0  work
 
 ```console
 (kaldi-env) USER@terra:~$ cd ~/kaldi/tools
-(kaldi-env) USER@terra:~/kaldi/tools$ make
+(kaldi-env) USER@terra:~/kaldi/tools$ make -j 12
 (kaldi-env) USER@terra:~/kaldi/tools$ cd ../src/
-(kaldi-env) USER@terra:~/kaldi/src$ make
+(kaldi-env) USER@terra:~/kaldi/src$ make -j 12
 ```
 
 ## Install OpenBlas
