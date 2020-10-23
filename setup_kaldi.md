@@ -105,7 +105,7 @@ kaldi  scratch  swig-4.0.0  work
 
 Look at the output and verify that the build was successful
 
-### Test Example Project
+## Test Example Project
 
 ```console
 (kaldi-env) USER@terra:~/kaldi/src$ cd ../egs/yesno/s5/
