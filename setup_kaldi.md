@@ -59,27 +59,10 @@ If it doesn't work, manually place the file to your user root directory /home/US
 (kaldi-env) USER@terra:~$ rm swig-4.0.0.tar.gz
 ```
 
-## Get Kaldi
-
-```console
-(kaldi-env) USER@terra:~$ git clone https://github.com/kaldi-asr/kaldi.git kaldi --origin upstream
-(kaldi-env) USER@terra:~$ ls
-kaldi  scratch  swig-4.0.0  work
-```
-
-## Install Kaldi
-
-```console
-(kaldi-env) USER@terra:~$ cd ~/kaldi/tools
-(kaldi-env) USER@terra:~/kaldi/tools$ make -j 12
-(kaldi-env) USER@terra:~/kaldi/tools$ cd ../src/
-(kaldi-env) USER@terra:~/kaldi/src$ make -j 12
-```
-
 ## Install OpenBlas
 
 ```console
-(kaldi-env) USER@terra:~/kaldi/tools$ cp  ../../../../data/tools/kaldi/tools/OpenBLAS-*.tar.gz .
+(kaldi-env) USER@terra:~/kaldi/tools$ cp  /data/tools/kaldi/tools/OpenBLAS-*.tar.gz .
 (kaldi-env) USER@terra:~/kaldi/tools$ tar -xzvf OpenBLAS-*.tar.gz
 (kaldi-env) USER@terra:~/kaldi/tools$ rm OpenBLAS-*.tar.gz
 (kaldi-env) USER@terra:~/kaldi/tools$ mv xianyi-OpenBLAS-* OpenBLAS
@@ -130,6 +113,23 @@ In our case, Terra has 32 cores available, but  8 cores seem to be sufficient fo
 
 ```console
 (kaldi-env) USER@terra:~/kaldi/src$ make -j clean depend; make -j <NCPU>
+```
+
+## Get Kaldi
+
+```console
+(kaldi-env) USER@terra:~$ git clone https://github.com/kaldi-asr/kaldi.git kaldi --origin upstream
+(kaldi-env) USER@terra:~$ ls
+kaldi  scratch  swig-4.0.0  work
+```
+
+## Install Kaldi
+This might not be needed
+```console
+(kaldi-env) USER@terra:~$ cd ~/kaldi/tools
+(kaldi-env) USER@terra:~/kaldi/tools$ make -j 12
+(kaldi-env) USER@terra:~/kaldi/tools$ cd ../src/
+(kaldi-env) USER@terra:~/kaldi/src$ make -j 12
 ```
 
 ## Verify that build was successful
