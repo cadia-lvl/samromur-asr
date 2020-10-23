@@ -62,15 +62,6 @@ If it doesn't work, manually place the file to your user root directory /home/US
 (kaldi-env) USER@terra:~$ rm swig-4.0.0.tar.gz
 ```
 
-## Install OpenBlas
-
-```console
-(kaldi-env) USER@terra:~/kaldi/tools$ cp  /data/tools/kaldi/tools/OpenBLAS-*.tar.gz .
-(kaldi-env) USER@terra:~/kaldi/tools$ tar -xzvf OpenBLAS-*.tar.gz
-(kaldi-env) USER@terra:~/kaldi/tools$ rm OpenBLAS-*.tar.gz
-(kaldi-env) USER@terra:~/kaldi/tools$ mv xianyi-OpenBLAS-* OpenBLAS
-(kaldi-env) USER@terra:~/kaldi/tools$ make PREFIX=$(pwd)/OpenBLAS/install USE_LOCKING=1 USE_THREAD=0 -C OpenBLAS all install
-```
 
 ## Install Cub
 
@@ -79,18 +70,6 @@ If it doesn't work, manually place the file to your user root directory /home/US
 (kaldi-env) USER@terra:~/kaldi/tools$ unzip -oq cub-1.8.0.zip
 (kaldi-env) USER@terra:~/kaldi/tools$ rm -f cub-1.8.0.zip
 (kaldi-env) USER@terra:~/kaldi/tools$ mv cub-1.8.0/ cub
-```
-
-## Switch Directories
-
-```console
-(kaldi-env) USER@terra:~/kaldi/tools$ cd ../src/
-```
-
-## Set Kaldi Configuration Flags
-
-```console
-(kaldi-env) USER@terra:~/kaldi/src$ CXX=g++-7 ./configure --mathlib=OPENBLAS  --cudatk-dir=/usr/local/cuda-10.0
 ```
 
 ## Compile Kaldi
@@ -103,22 +82,9 @@ If you want to check out the number of available cores on your system run:
 (kaldi-env) USER@terra:~/kaldi/src$ nproc
 32
 ```
-
 In our case, Terra has 32 cores available, but  8 cores seem to be sufficient for this task.
 
-## With output file
-
-```console
-(kaldi-env) USER@terra:~/kaldi/src$ make -j clean depend 2&> compile_output.txt; make -j <NCPU> &&> compile_output.txt
-```
-
-## Without the output file
-
-```console
-(kaldi-env) USER@terra:~/kaldi/src$ make -j clean depend; make -j <NCPU>
-```
-
-## Get Kaldi
+## Get Kaldi 
 
 ```console
 (kaldi-env) USER@terra:~$ git clone https://github.com/kaldi-asr/kaldi.git kaldi --origin upstream
@@ -126,16 +92,29 @@ In our case, Terra has 32 cores available, but  8 cores seem to be sufficient fo
 kaldi  scratch  swig-4.0.0  work
 ```
 
-## Install Kaldi
-This might not be needed
+## Install Kaldi 
 ```console
 (kaldi-env) USER@terra:~$ cd ~/kaldi/tools
 (kaldi-env) USER@terra:~/kaldi/tools$ make -j 12
+(kaldi-env) USER@terra:~/kaldi/tools$ extras/install_openblas.sh
 (kaldi-env) USER@terra:~/kaldi/tools$ cd ../src/
-(kaldi-env) USER@terra:~/kaldi/src$ make -j 12
+(kaldi-env) USER@terra:~/kaldi/src$ CXX=g++-7 ./configure --mathlib=OPENBLAS  --cudatk-dir=/usr/local/cuda-10.0
 ```
 
-## Verify that build was successful
+### With output file
+
+```console
+(kaldi-env) USER@terra:~/kaldi/src$ make -j clean depend 2&> compile_output.txt; make -j <NCPU> &&> compile_output.txt
+```
+
+### Without the output file
+
+```console
+(kaldi-env) USER@terra:~/kaldi/src$ make -j clean depend; make -j <NCPU>
+```
+
+
+### Verify that build was successful
 
 ```console
 (kaldi-env) USER@terra:~/kaldi/src$ tail -2 make_output.txt
