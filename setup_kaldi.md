@@ -56,9 +56,6 @@ If it doesn't work, manually place the file to your user root directory /home/US
 (kaldi-env) USER@terra:~$ ./configure --prefix=/home/USER/swig-4.0.0
 (kaldi-env) USER@terra:~$ make
 (kaldi-env) USER@terra:~$ make install
-(kaldi-env) USER@terra:~$ export SWIG_PATH=/home/USER/swig-4.0.0/bin
-(kaldi-env) USER@terra:~$ export PATH=$SWIG_PATH:$PATH
-(kaldi-env) USER@terra:~$ source /etc/profile
 (kaldi-env) USER@terra:~$ rm swig-4.0.0.tar.gz
 ```
 
