@@ -49,6 +49,7 @@ If it doesn't work, manually place the file to your user root directory /home/US
 ```console
 (kaldi-env) USER@terra:~$ chmod 777 swig-4.0.0.tar.gz
 (kaldi-env) USER@terra:~$ tar -xzvf swig-4.0.0.tar.gz
+(kaldi-env) USER@terra:~$ cd swig-4.0.0
 (kaldi-env) USER@terra:~$ ./configure --prefix=/home/USER/swig-4.0.0
 (kaldi-env) USER@terra:~$ make
 (kaldi-env) USER@terra:~$ make install
