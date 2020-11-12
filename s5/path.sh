@@ -1,12 +1,12 @@
+#!/usr/bin/env bash
+
 # Defining Kaldi root directory
 export KALDI_ROOT=$HOME/kaldi
 
-# Defining The Icelandic Pronunciation directory (modify it for your installation directory!)
-export ICELANDIC_PRONDICT_ROOT=$HOME/prondict_sr
+[ -f $KALDI_ROOT/tools/env.sh ] && . $KALDI_ROOT/tools/env.sh
+export PATH=utils/:$KALDI_ROOT/tools/openfst/bin:/opt/mitlm/bin:/opt/sequitur/bin:/opt/kenlm/build/bin:$PWD:$PATH
+[ ! -f $KALDI_ROOT/tools/config/common_path.sh ] && echo >&2 "The standard file $KALDI_ROOT/tools/config/common_path.sh is not present -> Exit!" && exit 1
+. $KALDI_ROOT/tools/config/common_path.sh
 
-# Defining Samrómur Data directory (modify it for your installation directory!)
-# Examples dataset (switch to the actual dataset when the dataset is available)
-export SAMROMUR_ROOT=$HOME/samromur_recordings_1000
-# export SAMROMUR_ROOT=$HOME/samromur
-
-export PATH=$KALDI_ROOT/src/ivectorbin:$PWD/utils/:$KALDI_ROOT/src/bin:$KALDI_ROOT/src/online2bin:$KALDI_ROOT/src/onlinebin:$KALDI_ROOT/tools/openfst/bin:$KALDI_ROOT/src/fstbin/:$KALDI_ROOT/src/gmmbin/:$KALDI_ROOT/src/featbin/:$KALDI_ROOT/src/lm/:$KALDI_ROOT/src/lmbin/:$KALDI_ROOT/src/sgmmbin/:$KALDI_ROOT/src/sgmm2bin/:$KALDI_ROOT/src/fgmmbin/:$KALDI_ROOT/src/latbin/:$KALDI_ROOT/src/nnet3bin::$KALDI_ROOT/src/nnetbin:$KALDI_ROOT/src/nnet2bin/:$KALDI_ROOT/src/kwsbin:$PWD:$PATH
+# Activate all althingi specific paths as well as exp, data and mfcc on scratch
+. ./conf/path.conf
