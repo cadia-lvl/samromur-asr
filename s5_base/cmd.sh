@@ -11,7 +11,7 @@ if [[ $(hostname -f) == terra.hir.is ]]; then
   export train_cmd="utils/slurm.pl"
   export decode_cmd="utils/slurm.pl --mem 4G"
   export mkgraph_cmd="utils/slurm.pl --mem 4G"
-  export big_memory_cmd="utils/slurm.pl --mem 8G"
+  export big_memory_cmd="utils/slurm.pl --mem 16G"
   export cuda_cmd="utils/slurm.pl --gpu 1"
 else
   #c) run it locally...

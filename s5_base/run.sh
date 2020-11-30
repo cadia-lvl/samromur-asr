@@ -14,7 +14,6 @@
 set -euo pipefail
 
 samromur_root=samromur
-num_jobs=50
 stage=0
 
 . utils/parse_options.sh
@@ -28,9 +27,9 @@ training_dataset_ratio=80
 
 if [ $stage -le 0 ]; then
   echo "Create training data from samromur training"
-  local/make_samromur.sh $samromur_root training data
-  local/make_samromur.sh $samromur_root test data
-  local/make_samromur.sh $samromur_root eval data
+  local/samromur_data_prep.sh $samromur_root training data
+  local/samromur_data_prep.sh $samromur_root test data
+  local/samromur_data_prep.sh $samromur_root eval data
 
   utils/combine_data.sh data/train data/samromur_training
   utils/combine_data.sh data/dev data/samromur_test
@@ -74,7 +73,7 @@ if [ $stage -le 4 ]; then
   mkdir -p data/lang_3gram
 
   # language  modeling files are typically in data/lang_Xgram
-  utils/slurm.pl --mem 16G logs/make_LM_3gsmall.log local/make_LM.sh --order 3 \
+  $big_memory_cmd logs/make_LM_3gsmall.log local/make_LM.sh --order 3 \
   --small true --carpa false data/text_lm_training.txt data/lang/ \
   data/local/dict/lexicon.txt data/lang_3gram
 fi
@@ -93,7 +92,7 @@ if [ $stage -le 5 ]; then
     utils/mkgraph.sh data/lang_3gsmall \
       exp/mono exp/mono/graph_3gram
     for test in dev; do
-      steps/decode.sh --nj 10 --cmd "$decode_cmd" exp/mono/graph_3gram \
+      steps/decode.sh --nj ${num_jobs} --cmd "$decode_cmd" exp/mono/graph_3gram \
         data/$test exp/mono/decode_3gram_$test
     done
   )&
