@@ -1,4 +1,4 @@
-# Introdution to Kaldi
+# Introduction to Kaldi
 
 ## What is Kaldi-ASR
 
