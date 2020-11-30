@@ -29,6 +29,8 @@
 
 Samrómur ASR is a collection of scripts and recipes for the training of an ASR environment using the [Kaldi-ASR](http://kaldi-asr.org/) toolkit.
 
+[s5_base](/s5_base) is the regular ASR recipe. It's meant to be the foundation of our other samromur recipes.
+
 ## 2. The Dataset
 
 Samrómur speech corpus is an open (CC-BY 4 licence) and accessible database of voices that everyone is free to use when developing software in Icelandic.
@@ -52,6 +54,8 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 - [Language and Voice Lab](https://lvl.ru.is/)
 - [Reykjavik University](https://www.ru.is/)
 - [Kaldi-ASR](http://kaldi-asr.org/)
+
+This project was funded by the Language Technology Programme for Icelandic 2019-2023. The programme, which is managed and coordinated by [Almannarómur](https://almannaromur.is/), is funded by the Icelandic Ministry of Education, Science and Culture.
 
 ## 6. Contributing
 
