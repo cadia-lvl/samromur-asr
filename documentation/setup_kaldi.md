@@ -75,7 +75,7 @@ If it doesn't work, manually place the file to your user root directory /home/US
 
 \<NCPU\> = Number of CPU to use. 
 
-If you want to check the number of available cores on your system run:
+If you want to check out the number of available cores on your system run:
 
 ```console
 (kaldi-env) USER@terra:~/kaldi/src$ nproc

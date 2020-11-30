@@ -5,7 +5,7 @@ Creating an Acoustic Model from the Samrómur corpus
 <!-- omit in toc -->
 ## Introduction
 
-One of the first steps in creating the Samromur ASR is to create a Acoustic
+One of the first steps in creating the Samromur ASR is to create an Acoustic
 Model (AM) from the audio files.
 
 The task involves creating metadata files for the `Audio data` and the
