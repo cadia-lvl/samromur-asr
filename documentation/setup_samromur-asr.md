@@ -3,7 +3,7 @@
 ## Setup Kaldi
 
 Make sure you have installed Kaldi. If not, please follow this guide:
-* [Setup Guide for Kaldi-ASR](/setup_kaldi.md)
+* [Setup Guide for Kaldi-ASR](/documentation/setup_kaldi.md)
 
 
 <!-- TODO: How to get samromur data fram Clarin and set enviroment varialbes -->
@@ -98,7 +98,7 @@ samromur_meta_file=~/samromur_recordings/metadata.tsv
 
 Now you should have successfully:
 * created an acoustic model
-* trained your language model
+* trained a language model
 
 ## Clean directory
 

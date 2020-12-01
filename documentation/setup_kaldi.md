@@ -1,6 +1,8 @@
 # Setup Kaldi-ASR
 
-This setup guide is tailord for setup on Terra (the compute cluster in LVL). Feel free to look at the following guide if you want another step by step guide to setup Kaldi: <http://jrmeyer.github.io/asr/2016/01/26/Installing-Kaldi.html>
+This setup guide is tailored for setup on Terra (the compute cluster in LVL).
+Feel free to look at the following guide if you want another step by step guide
+to setup Kaldi: <http://jrmeyer.github.io/asr/2016/01/26/Installing-Kaldi.html>
 
 
 ## Assign Conda package manager to your user shell
@@ -63,7 +65,7 @@ If it doesn't work, manually place the file to your user root directory /home/US
 ## Install Cub
 
 ```console
-(kaldi-env) USER@terra:~/kaldi/tools$ cp  /data/tools/kaldi/tools/cub-1.8.0.zip .
+(kaldi-env) USER@terra:~/kaldi/tools$ cp /data/tools/kaldi/tools/cub-1.8.0.zip .
 (kaldi-env) USER@terra:~/kaldi/tools$ unzip -oq cub-1.8.0.zip
 (kaldi-env) USER@terra:~/kaldi/tools$ rm -f cub-1.8.0.zip
 (kaldi-env) USER@terra:~/kaldi/tools$ mv cub-1.8.0/ cub
@@ -79,7 +81,7 @@ If you want to check out the number of available cores on your system run:
 (kaldi-env) USER@terra:~/kaldi/src$ nproc
 32
 ```
-In our case, Terra has 32 cores available, but  8 cores seem to be sufficient for this task.
+In our case, Terra has 32 cores available, but 8 cores seem to be sufficient for this task.
 
 ## Get Kaldi 
 
