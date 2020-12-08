@@ -20,10 +20,7 @@ stage=0
 
 #TODO: set the samromur data and metadata variables within path.sh
 mfccdir=`pwd`/mfccs
-num_threads=4
 num_jobs=10
-minibatch_size=128
-training_dataset_ratio=80
 
 if [ $stage -le 0 ]; then
   echo "Create training data from samromur training"
