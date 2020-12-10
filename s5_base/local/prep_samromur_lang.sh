@@ -5,11 +5,17 @@
 # Description: create the data/local/dict directory to make data/lang for samromur
 # This file should be called by run.sh
 
+if [ $# -ne 3 ] && [ $# -ne 2 ]; then
+  echo "Usage: $0 <text> <out-data-dir> <g2p-model>"
+  echo "e.g.: $0 data/train/text data/ /data/models/g2p/sequitur/althingi/g2p.mdl"
+  echo "      The g2p model is optional."
+  exit 1;
+fi
+
 textfile=$1 # training/text
 data_dir=$2
 dict_dir=$data_dir/local/dict
-# TODO: have g2p as a parameter
-g2p_model=/data/models/g2p/sequitur/althingi/g2p.mdl
+g2p_model=${3:-/data/models/g2p/sequitur/althingi/g2p.mdl}
 
 tmp_dir=$data_dir/.tmp/
 mkdir -p $tmp_dir
