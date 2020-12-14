@@ -125,3 +125,29 @@ if [ $stage -le 6 ]; then
     data/train data/lang exp/samromur_tri1 exp/tri1_ali_train
 fi
 
+# train an LDA+MLLT system triphone2.
+if [ $stage -le 7 ]; then
+  steps/train_lda_mllt.sh --cmd "$train_cmd" \
+    --splice-opts "--left-context=3 --right-context=3" 2500 15000 \
+    data/train data/lang exp/tri1_ali_train exp/samromur_tri2b
+
+  # decode using the LDA+MLLT model
+  (
+    utils/mkgraph.sh data/lang_3gsmall \
+      exp/samromur_tri2b exp/samromur_tri2b/graph_3gsmall
+    for test in dev; do
+      steps/decode.sh --nj 10 --cmd "$decode_cmd" exp/samromur_tri2b/graph_3gsmall \
+        data/$test exp/samromur_tri2b/decode_3gsmall_$test
+      steps/lmrescore.sh --cmd "$decode_cmd" data/lang_{3gsmall,3gmed} \
+        data/$test exp/samromur_tri2b/decode_{3gsmall,3gmed}_$test
+      steps/lmrescore_const_arpa.sh \
+        --cmd "$decode_cmd" data/lang_{3gsmall,3glarge} \
+        data/$test exp/samromur_tri2b/decode_{3gsmall,3glarge}_$test
+    done
+  )&
+
+  # Align utts using the tri2b model
+  steps/align_si.sh  --nj 5 --cmd "$train_cmd" --use-graphs true \
+    data/train data/lang exp/samromur_tri2b exp/samromur_tri2b_ali_train
+fi
+
