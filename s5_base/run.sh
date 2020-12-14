@@ -67,12 +67,12 @@ if [ $stage -le 4 ]; then
   cat data/train/text | cut -d' ' -f2- | sed -e \
  's/[,.?!]//g' > data/text_lm_training.txt
 
-  mkdir -p data/lang_3gram
+  mkdir -p data/lang_3gsmall
 
   # language  modeling files are typically in data/lang_Xgram
   $big_memory_cmd logs/make_LM_3gsmall.log local/make_LM.sh --order 3 \
   --small true --carpa false data/text_lm_training.txt data/lang/ \
-  data/local/dict/lexicon.txt data/lang_3gram
+  data/local/dict/lexicon.txt data/lang_3gsmall
 fi
 
 # train a monophone system
@@ -83,7 +83,7 @@ if [ $stage -le 5 ]; then
   steps/train_mono.sh --boost-silence 1.25 --nj 5 --cmd "$train_cmd" \
     data/train_500short data/lang exp/mono
 
-  # TODO: Understand why we use lang_nosp here...
+  # TODO: add decode variable
   echo "Create decoding graph"
   (
     utils/mkgraph.sh data/lang_3gsmall \
@@ -101,25 +101,23 @@ fi
 
 # train a first delta + delta-delta triphone(tri1) system on all utterances
 if [ $stage -le 6 ]; then
+  echo "Train deltas triphone1 model"
   steps/train_deltas.sh --boost-silence 1.25 --cmd "$train_cmd" \
     2000 10000 data/train data/lang exp/mono_ali_train exp/samromur_tri1
-fi
 
-exit 0
-# TODO: before decoding create a tgmed or tglarge arpalm
-if [ $stage -eq 7 ]; then
   # decode using the tri1 model
+  echo "Create deltas decoding graph"
   (
     utils/mkgraph.sh data/lang_3gsmall \
       exp/samromur_tri1 exp/samromur_tri1/graph_3gsmall
     for test in dev; do
-      steps/decode.sh --nj 5 --cmd "$decode_cmd" exp/samromur_tri1/graph_tgsmall \
+      steps/decode.sh --nj 5 --cmd "$decode_cmd" exp/samromur_tri1/graph_3gsmall \
       data/$test exp/samromur_tri1/decode_3gsmall_$test
-      steps/lmrescore.sh --cmd "$decode_cmd" data/lang_{3gsmall,tgmed} \
-        data/$test exp/samromur_tri1/decode_{3gsmall,tgmed}_$test
+      steps/lmrescore.sh --cmd "$decode_cmd" data/lang_{3gsmall,3gmed} \
+        data/$test exp/samromur_tri1/decode_{3gsmall,3gmed}_$test
       steps/lmrescore_const_arpa.sh \
-        --cmd "$decode_cmd" data/lang_{3gsmall,tglarge} \
-        data/$test exp/samromur_tri1/decode_{3gsmall,tglarge}_$test
+        --cmd "$decode_cmd" data/lang_{3gsmall,3glarge} \
+        data/$test exp/samromur_tri1/decode_{3gsmall,3glarge}_$test
     done
   )&
 
