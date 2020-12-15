@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # Defining Kaldi root directory
 export KALDI_ROOT=$HOME/kaldi
 

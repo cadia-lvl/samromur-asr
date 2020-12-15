@@ -1,0 +1,467 @@
+# Grammar file to expand abbreviations, numbers and ordinals
+#
+# Copyright 2017  Reykjavik University (Author: Inga Rún Helgadóttir)
+# Apache 2.0
+#
+# This grammar can be interactively tested by doing:
+#
+# thraxrewrite-tester --far=local/thraxgrammar/abbreviate.far --rules=ABBR_AND_DENORM --noutput=1 --input_mode=utf8 --output_mode=utf8
+
+# It can also be tested in the following way:
+# thraxrewrite-fileio --far=local/abbreviate.far --rules=ABBREVIATE
+# --noutput=1 --input_mode=utf8 --output_mode=utf8 <input-text-file>
+# <output-text-file>
+
+import 'local/thraxgrammar/common.grm' as c;
+import 'local/thraxgrammar/numbers.grm' as n;
+import 'local/thraxgrammar/ordinals.grm' as o;
+
+# This transducer deletes a sequence of zero or more spaces:
+delspace = c.space* : "".utf8;
+
+insspace = "".utf8 : " ".utf8;
+
+unitnames = n.units;
+neutralunitnames = n.neutral_units;
+numbernames_11plus_and_0 = n.NUMBERNAMES_11_to_999999_and_0; #n.NUMBERNAMES_11plus_and_0;
+ordinalnames = o.ORDINALNAMES_to_abbreviate; # Does not expand 1.-10.
+ordinal = Invert[ordinalnames];
+#namesnumber = f.NAMESNUMBER2;
+
+ten = "tíu".utf8 : "10".utf8;
+units = Invert[unitnames];
+neutralunits = Invert[neutralunitnames];
+
+units_plus = ten | units;
+neutralunits_plus = ten | neutralunits;
+
+#namesnumber = Invert[numbernames];
+namesnumber_11plus_and_0 = Invert[numbernames_11plus_and_0];
+
+# Abbreviations used in Alþingi paired with their expansions
+abbr = Optimize[StringFile['local/thraxgrammar/lex/abbreviate_words.txt','utf8','utf8']];
+abbr2 = Optimize[StringFile['local/thraxgrammar/lex/abbreviate_if_preceded_wNumber.txt','utf8','utf8']];
+abbr3 = Optimize[StringFile['local/thraxgrammar/lex/abbreviate_if_followed_byNumber.txt','utf8','utf8']];
+first_to_tenth = Optimize[StringFile['local/thraxgrammar/lex/first_to_tenth.txt','utf8','utf8']];
+half_expand = Optimize[StringFile['local/thraxgrammar/lex/half.txt','utf8','utf8']];
+half = Invert[half_expand];
+kjordaemi = Optimize[StringFile['local/thraxgrammar/lex/kjordaemi_abbr.txt','utf8','utf8']];
+
+ABBR_NUMBER_11plus_and_0 = Optimize[
+                     CDRewrite[namesnumber_11plus_and_0 delspace,
+                     ("[BOS]".utf8 | " ".utf8),
+                     ("[EOS]".utf8 | " ".utf8),
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl']];
+
+abbr_neutral_unit_CDbefore = Optimize[
+                     CDRewrite[neutralunits_plus,
+                     ("númer ".utf8 | "til ".utf8),
+                     (" ".utf8 | "[EOS]".utf8),
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl']];
+
+abbr_neutral_unit_CDafter = Optimize[
+                     CDRewrite[neutralunits_plus,
+                     ("[BOS]".utf8 | " ".utf8),
+                     ( " til ".utf8),
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl']];
+
+abbr_unit_CDbefore = Optimize[
+                     CDRewrite[units_plus,
+                     ("komma ".utf8),
+                     (" ".utf8 | "[EOS]".utf8),
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl']];
+
+abbr_unit_CDafter = Optimize[
+                    CDRewrite[units_plus,
+                    ("[BOS]".utf8 | " ".utf8),
+                    " ".utf8 ("og hálf".utf8 c.alphabet* " ".utf8)? ("komma".utf8
+                    | "prósent".utf8 | "prómill".utf8
+                    | "gráð".utf8 | "krón".utf8 | "milljarð".utf8 | "milljörðum".utf8
+                    | "millj".utf8 c.alphabet+ " krón".utf8
+                    | ("fer".utf8 | "rúm".utf8)? ("kíló".utf8 | "sentí".utf8? "metr".utf8)
+                    | "gígav".utf8 | "megav".utf8 | "terav".utf8),
+                    c.whole_alphabet*,
+                    'ltr',
+                    'obl']];
+
+abbr_half = Optimize[
+            CDRewrite[half delspace,
+            c.Digits,
+            (" ".utf8 | "[EOS]".utf8),
+            c.whole_alphabet*,
+            'ltr',
+            'obl']];
+
+# I'm thinking about the case when I have f.ex. "zero point one three
+# seven"
+abbr_unit_CDbefore2 = Optimize[
+                      CDRewrite[units_plus,
+                      (c.Digits " ".utf8),
+                      (" ".utf8 | "[EOS]".utf8),
+                      c.whole_alphabet*,
+                      'ltr',
+                      'obl']];
+
+# Abbreviate "first" and "second" if a followed by any of the
+# following:
+abbr_first_to_tenth = Optimize[
+                     CDRewrite[first_to_tenth,
+                     (" ".utf8 | "[BOS]".utf8),
+                     ( " árgang".utf8 | " grein".utf8 | " málsgrein".utf8
+                     | " umræð".utf8 | " lið".utf8 | " minni hluta".utf8
+                     | " tölulið".utf8 | " viðauk".utf8
+                     | " varaþingm".utf8 | " þingm".utf8
+                     | " janúar".utf8 | " febrúar".utf8
+                     | " mars".utf8 | " apríl".utf8 | " maí".utf8
+                     | " júní".utf8 | " júlí".utf8 | " ágúst".utf8
+                     | " september".utf8 | " október".utf8
+                     | " nóvember".utf8 | " desember".utf8),
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl']];
+
+abbr_ratio = Optimize[
+             CDRewrite[units,
+             ("[BOS]".utf8 | " ".utf8),
+             (" ".utf8 c.Digits ".".utf8),
+             c.whole_alphabet*,
+             'ltr',
+             'obl']];
+
+ABBR_NUMBER = Optimize[ABBR_NUMBER_11plus_and_0 @
+abbr_neutral_unit_CDbefore @  abbr_unit_CDbefore @
+abbr_neutral_unit_CDafter @ abbr_unit_CDafter @
+abbr_unit_CDbefore2 @ abbr_first_to_tenth @ abbr_half @ abbr_ratio];
+
+
+# This abbreviates at least one rewritable word or number, per
+# senctence. But doesn't take in senctences containing numerals
+# and/or abbreviations (written as f.ex. 2, 4, t.d., hv.)
+# So we would loose utterances
+#export exp_tmp = Optimize[rewrite @ optional_exp @ EXPAND_WORD ];
+#export tmp = Invert[rewrite @ optional_exp @ word];
+ABBR_WORD = Optimize[
+                     CDRewrite[abbr delspace,
+                     ("[BOS]".utf8 | " ".utf8),
+                     ("[EOS]".utf8 | " ".utf8),
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl']];
+
+ORDINAL = ArcSort[Optimize[Determinize[
+                     CDRewrite[ordinal delspace,
+                     ("[BOS]".utf8 | " ".utf8),
+                     ("[EOS]".utf8 | " ".utf8),
+                     c.whole_alphabet*,
+                     'sim',
+                     'obl']]],
+                     'input']; # If have 'obl' instead, all "annars
+                     # vegar" and "dag einn..." will be abbreviated
+
+abbreviate1 = Optimize[ABBR_WORD @ ORDINAL @ ABBR_NUMBER];
+
+# Could I here add a fst that works on the output of the first
+# one. F.ex. checks if the previous word is a number??
+
+ABBR_WORD2 = CDRewrite[abbr2 delspace,
+                     (c.Digits+ ".".utf8? " ".utf8),
+                     ("[EOS]".utf8 | " ".utf8),
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl'];
+
+nr = CDRewrite[("númer".utf8 : "nr".utf8) delspace,
+               ("[BOS]".utf8 | " ".utf8),
+               (" ".utf8 c.Digits+),
+               c.whole_alphabet*,
+               'ltr',
+               'obl'];
+
+abbreviate2 = ArcSort[Optimize[Determinize[abbreviate1 @ ABBR_WORD2 @ nr]],'input'];
+
+ABBR_WORD3 = Optimize[
+                     CDRewrite[abbr3 delspace,
+                     ("[BOS]".utf8 | " ".utf8),
+                     (" ".utf8 ("lög nr ".utf8 | "lögum nr ".utf8 |
+                     "nr ".utf8)? c.Digits+ ".".utf8?),
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl']];
+
+ABBR_KJORDAEMI = CDRewrite[kjordaemi delspace,
+                     (c.Digits+ ".".utf8 " ".utf8 "þingm".utf8
+                     c.alphabet+ " ".utf8),
+                     ("[EOS]".utf8 | " ".utf8),
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl'];
+
+export ABBREVIATE = ArcSort[
+                    Optimize[abbreviate2 @ ABBR_WORD3 @ ABBR_KJORDAEMI],
+                    'input'];
+
+# Denormalization
+middle_name_abbr_lex = Optimize[StringFile['local/thraxgrammar/lex/alphabet.txt','utf8','utf8']];
+middle_name_abbr = Optimize[
+                      CDRewrite[middle_name_abbr_lex delspace,
+                      ("[BOS]".utf8 | " ".utf8) c.ALPHABET
+                      c.alphabet+ " ".utf8,
+                      (c.alphabet " ".utf8)? " ".utf8 c.ALPHABET
+                      c.alphabet+ ("son".utf8 | "syni".utf8 |
+                      "dóttur".utf8 | "dóttir".utf8 | "sen".utf8)
+                      c.u8_punct? ("[EOS]".utf8 | " ".utf8),
+                      c.whole_alphabet*,
+                      'ltr',
+                      'obl']];
+
+personal_names = Optimize[StringFile['local/thraxgrammar/lex/ambiguous_personal_names.txt','utf8','utf8']];
+amb_pers_names1 = Optimize[
+                      CDRewrite[personal_names delspace,
+                      ("[BOS]".utf8 | " ".utf8),
+                      " ".utf8 c.ALPHABET c.alphabet+ ("son".utf8 "ar".utf8? | "syni".utf8 |
+                      "dóttur".utf8 | "dóttir".utf8 | "sen".utf8)
+                      c.u8_punct? ("[EOS]".utf8 | " ".utf8),
+                      c.whole_alphabet*,
+                      'ltr',
+                      'obl']];
+
+amb_pers_names2 = Optimize[
+                      CDRewrite[personal_names delspace,
+                      ("[BOS]".utf8 | " ".utf8),
+                      " ".utf8 c.ALPHABET c.alphabet+
+                      " ".utf8 c.ALPHABET c.alphabet+
+                      ("son".utf8 | "syni".utf8 |
+                      "dóttur".utf8 | "dóttir".utf8 | "sen".utf8)
+                      c.u8_punct? ("[EOS]".utf8 | " ".utf8),
+                      c.whole_alphabet*,
+                      'ltr',
+                      'obl']];
+
+name_casing = Optimize[middle_name_abbr @ amb_pers_names1 @
+amb_pers_names2];
+
+acro_denorm_lex = Optimize[StringFile['local/thraxgrammar/lex/acro_denormalize.txt','utf8','utf8']];
+acro_denorm = CDRewrite[acro_denorm_lex,
+                     ("[BOS]".utf8 | " ".utf8),
+                     ("[EOS]".utf8 | " ".utf8),
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl'];
+
+law_nr1 = CDRewrite[(" ".utf8 : "/".utf8),
+                c.Digits+,
+                ("EBE".utf8 | "EB".utf8 | "ESB".utf8),
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+law_nr2 = CDRewrite[(" ".utf8 : "/".utf8) | (" frá ".utf8 : "/".utf8),
+                c.Digits+,
+                c.Digits+ "/".utf8 ("EBE".utf8 | "EB".utf8 | "ESB".utf8),
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+law_nr3 = CDRewrite[(" ".utf8 : "/".utf8) | (" frá ".utf8 : "/".utf8),
+                "nr ".utf8 c.Digits+,
+                c.Digits+,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+law_nr = Optimize[law_nr1 @ law_nr2 @ law_nr3];
+
+endash = CDRewrite[(" til ".utf8 : "–".utf8),
+                c.Digits+,
+                c.Digits+,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+kl = CDRewrite[(" ".utf8 : ":".utf8),
+                "kl ".utf8 c.Digits+,
+                c.Digits+,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+decimal1 = CDRewrite[(" komma ".utf8 : ",".utf8),
+                c.Digits+,
+                c.Digits+,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+decimal2 = CDRewrite[delspace,
+                c.Digits+ ",".utf8 c.Digits+,
+                c.Digits c.Digits? ("[EOS]".utf8 | " ".utf8),
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+ratio1 = CDRewrite[(" ".utf8 : "/".utf8),
+                ("[BOS]".utf8 | " ".utf8) c.Digits,
+                c.Digits ".".utf8,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+ratio2 = CDRewrite[(".".utf8 : "".utf8),
+                ("[BOS]".utf8 | " ".utf8) c.Digits "/".utf8 c.Digits,
+                ("[EOS]".utf8 | " ".utf8),
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+rm_space_bf_punct = CDRewrite[delspace,
+                c.Digits,
+                ("°".utf8 | "%".utf8 | "‰".utf8),
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+celsius = CDRewrite[(" á".utf8?" Celsíus".utf8 : "C".utf8),
+                "°".utf8,
+                ("[EOS]".utf8 | " ".utf8),
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+url1 = CDRewrite[(" ".utf8 : "://".utf8),
+                "http".utf8 "s".utf8?,
+                "www".utf8,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+url2 = CDRewrite[(" ".utf8 : ".".utf8),
+                "www".utf8,
+                c.Alnum+,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+url3 = CDRewrite[(" punktur ".utf8 : ".".utf8),
+                c.Alnum+,
+                ("is".utf8 | "net".utf8 | "com".utf8),
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+url = Optimize[url1 @ url2 @ url3];
+
+ogeda = CDRewrite[(" ".utf8 : "/".utf8),
+                "og".utf8,
+                "eða".utf8,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+committee = CDRewrite[("".utf8 : "-".utf8),
+                ("allsherjar".utf8 | "efnahags".utf8 | "stjórnskipunar".utf8 | "umhverfis".utf8),
+                " og ".utf8 c.alphabet+ "nefnd".utf8,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+minister = CDRewrite[("".utf8 : "-".utf8),
+                ("dóms".utf8 | "EES".utf8 | "efnahags".utf8
+                | "félagsmála".utf8 | "félags".utf8 | "ferðamála".utf8
+                | "fjármála".utf8 | "heilbrigðis".utf8
+                | "iðnaðar".utf8 | "jafnréttis".utf8 | "landbúnaðar".utf8
+                | "mennta".utf8 | "nýsköpunar".utf8 | "samgöngu".utf8
+                | "sjávarútvegs".utf8 | "umhverfis".utf8 | "viðskipta".utf8),
+                " og ".utf8 c.alphabet+ "ráðherra".utf8,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+ministry = CDRewrite[("".utf8 : "-".utf8),
+                ("atvinnu".utf8 | "atvinnuvega".utf8 | "auðlinda".utf8
+                | "byggða".utf8 | "dóms".utf8 | "dómsmála".utf8 | "efnahags".utf8
+                | "félags".utf8 | "fjármála".utf8 | "forsætis".utf8
+                | "heilbrigðis".utf8 | "iðnaðar".utf8 | "innanríkis".utf8 | "landbúnaðar".utf8
+                | "mennta".utf8 | "samgöngu".utf8 | "sjávarútvegs".utf8
+                | "umhverfis".utf8 | "velferðar".utf8| "viðskipta".utf8),
+                " og ".utf8 c.alphabet+ "ráðuneyt".utf8,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+# Add dash into words, e.g. "EFTA-þjóðirnar"
+dash = Optimize[StringFile['local/thraxgrammar/lex/dash.txt','utf8','utf8']];
+insert_dash = CDRewrite[dash,
+                     ("[BOS]".utf8 | " ".utf8),
+                     "".utf8,
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl'];
+
+dr = CDRewrite[("doktor".utf8 : "dr".utf8),
+                " ".utf8,
+                " ".utf8 c.ALPHABET c.alphabet+,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+vg = CDRewrite[(" ".utf8 : " – ".utf8),
+                "Vinstrihreyfing".utf8 c.alphabet+,
+                "græn".utf8 c.alphabet+,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+#upptalning_lex = Optimize[StringFile['local/thraxgrammar/lex/ordinals_neutral_3-9.txt','utf8','utf8']];
+#upptalning = CDRewrite[upptalning_lex,
+                # ("Í ".utf8 | "í ".utf8),
+                # " lagi ".utf8,
+                # c.whole_alphabet*,
+                # 'ltr',
+                # 'obl'];
+
+DENORM = Optimize[name_casing @ acro_denorm @ law_nr @ endash @ kl @
+decimal1 @ decimal2 @ ratio1 @ ratio2 @ rm_space_bf_punct @ celsius @
+url @ ogeda @ committee @ minister @ ministry @ insert_dash @ dr @ vg];
+
+export ABBR_AND_DENORM = ArcSort[
+                    Optimize[ABBREVIATE @ DENORM],
+                    'input'];
+
+# The following happens after the punctuation model is applied
+delspace_in_tags = CDRewrite[("< ".utf8 : "<".utf8) | (" >".utf8 : ">".utf8),
+                "".utf8,
+                "".utf8,
+                c.whole_alphabet*,
+                'ltr',
+                'obl'];
+
+ins_periods =
+Optimize[StringFile['local/thraxgrammar/lex/abbr_periods.txt','utf8','utf8']];
+
+INS_PERIODS = CDRewrite[ins_periods,
+                     ("[BOS]".utf8 | " ".utf8),
+                     (".".utf8? | ",".utf8? | "?".utf8? | "!".utf8? | ":".utf8?) ("[EOS]".utf8 | " ".utf8),
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl'];
+
+export INSERT_PERIODS = Optimize[rm_space_bf_punct @ delspace_in_tags @ INS_PERIODS];
+
+# REMOVE_PERIODS if for removing periods from abbreviations, when
+# cleaning a new speech, before adding it to our language model texts
+# and any new words to the vocabulary.
+rm_periods = Invert[ins_periods];
+export REMOVE_PERIODS = CDRewrite[rm_periods,
+                     ("[BOS]".utf8 | " ".utf8),
+                     ("[EOS]".utf8 | " ".utf8),
+                     c.whole_alphabet*,
+                     'ltr',
+                     'obl'];

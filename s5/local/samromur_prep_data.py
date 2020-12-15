@@ -3,10 +3,8 @@
 # Author: David Erik Mollberg, Inga Run Helgadottir (Reykjavik University)
 # Description:
 # This script will output the files text, wav.scp, utt2spk, spk2utt and spk2gender
-# to data/all, data/train data/test with test/train/eval splits defined in the metadatafile.
-# The script also makes a tokens file which which contains the word types in the corpus.
+# to data/train, data/eval data/test with test/train/eval splits defined in the metadatafile.
 
-import os
 import subprocess
 import argparse
 from pathlib import Path
@@ -16,9 +14,8 @@ import pandas as pd
 def parse_arguments():
     parser = argparse.ArgumentParser(
         description="""This script will output the files text, wav.scp, utt2spk, spk2utt and spk2gender\n
-        to data/all, data/train data/test with test/train/eval splits defined in the metadatafile.\n
-        The script also makes a tokens file which which contains the word types in the corpus.\n
-        Usage: python3 local/samromur_prep_data.py <path-to-samromur-audio> <info-file-training>\n
+        to data/train, data/eval and data/test, with test/train/eval splits defined in the metadatafile.\n
+        Usage: python3 samromur_prep_data.py <path-to-samromur-audio> <info-file-training>\n
             E.g. python3 samromur_prep_data.py /data/corpora/samromur/audio/ metadata.tsv\n
         """
     )
@@ -52,6 +49,8 @@ def append_to_file(df, audio_dir: str, text, wavscp, utt2spk, spk2gender):
     """
     Append relevant data to the files
     """
+    # NOTE! If we use something else that a counter in the ID, e.g. the recording ID,
+    # we could skip the loop and just used vectorized operations
     for i in df.index:
         utt_id = f"{df.at[i, 'speaker_id']}-{i}"
         text.write(f"{utt_id} {df.at[i, 'sentence_norm']}\n")
@@ -73,9 +72,6 @@ def clean_dir(datadir):
         f"utils/validate_data_dir.sh --no-feats {datadir} || utils/fix_data_dir.sh {datadir}",
         shell=True,
     )
-    # print('Sorting utt2spk and spk2utt')
-    # subprocess.call(f"sort -k1,1 -o {datadir}/utt2spk {datadir}/utt2spk", shell=True)
-    # subprocess.call(f"sort -k1,1 -o {datadir}/spk2utt {datadir}/spk2utt", shell=True)
 
 
 def main():
@@ -113,9 +109,6 @@ def main():
             if data_file == "eval":
                 df_part = df[df["status"].str.contains("eval")]
                 append_to_file(df_part, audio_dir, text, wav, utt2spk, spk2gender)
-            # if data_file == "all":
-            #    with open(f"{datadir}/text", "w") as text, open(f"{datadir}/wav", "w") as wav, open(f"{datadir}/utt2spk") as utt2spk, open(f"{datadir}/spk2gender") as spk2gender:
-            #        append_to_file(df_part, audio_dir, text, wav, utt2spk, spk2gender)
 
         clean_dir(datadir)
 

@@ -1,10 +1,11 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
-# Author: Egill Anton Hlöðversson, Inga Rún Helgadóttir
-#
+# Author: Egill Anton Hlöðversson, Inga Run Helgadottir (Reykjavik University)
+# 2020
+
 # Prepares audio and language data, extract features, train, and test tdnn-lstm model with Kaldi-ASR.
 
-set -o pipefail
+set -eo pipefail
 
 stage=0;
 num_jobs=20
@@ -26,6 +27,7 @@ fi
 samromur_root=/data/samromur/samromur_v1/samromur_v1/
 samromur_audio_dir=$samromur_root/audio;
 samromur_meta_file=$samromur_root/metadata_extended.tsv;
+#rmh_corpus=/work/inga/data/rmh_raw
 
 outdir=/work/inga/h7
 exp="$outdir"/exp
@@ -36,22 +38,16 @@ mfcc_hires="$outdir"/mfcc_hires
 # Note I need to update all the following
 # since we won't use any of the current data/models
 # Newest pronunciation dictionary
-prondict=/data/althingi/data/lexicon/prondict.20190411.txt #$(ls -t "$root_lexicon"/prondict.* | head -n1)
-localdict=$outdir/data/local #/work/inga/mallyskur_eydis/data/local/dict_rmh_2020-08-11/dict
-lmdir=/models/althingi/language_model/20190114/ #/work/inga/mallyskur_eydis/data/lang_rmh_2020-08-11
-lang=$lmdir/lang
-#lm_trainingset=/work/inga/mallyskur_eydis/data/lm_training_text/base_2020-08-11.txt
-mkdir -p "$lmdir"/log $localdict
+localdict=$data/local/dict #/work/inga/mallyskur_eydis/data/local/dict_rmh_2020-08-11/dict
+lang=$data/lang
+prondict_orig=$data/lex/prondict_2020-12-02.txt
+prondict=$data/lex/prondict_w_samromur.txt
+lm_trainingset=$data/lm_train/rmh_2020-11-23.txt
 
-for f in "$samromur_audio_dir" "$samromur_meta_file" "$prondict"; do
+for f in "$samromur_audio_dir" "$samromur_meta_file" "$prondict_orig"; do
     [ ! -f "$f" ] && echo "$0: expected $f to exist" && exit 1;
 done
 
-tmp=$(mktemp -d)
-cleanup () {
-    rm -rf "$tmp"
-}
-trap cleanup EXIT
 
 if [ -L steps ] && [ -L utils ]; then
     echo "steps and utils exist"
@@ -61,30 +57,17 @@ else
     ln -sfn "$KALDI_ROOT"/egs/wsj/s5/utils utils
 fi
 
-println "Running: $BASH_SOURCE"
-start=$SECONDS
 
-echo "Create the Kaldi files: wav.scp, text, utt2spk and spk2utt"
 if [ $stage -le 1 ]; then
-    println "";
-    println "### BEGIN - DATA PREPARATION ###";
-    timer=$SECONDS;
-    
+    echo "Create the Kaldi files: wav.scp, text, utt2spk and spk2utt"
     if [[ -d $samromur_audio_dir && -f $samromur_meta_file ]]; then
         python3 local/samromur_prep_data.py $samromur_audio_dir $samromur_meta_file $data
     fi
-    
-    println "### END - DATA PREPARATION ### - Elapsed: $(((SECONDS - timer) / 3600))hrs $((((SECONDS - timer) / 60) % 60))min $(((SECONDS - timer) % 60))sec";
 fi
 
-
-echo "Extract MFCC features"
-# Extract the Mel Frequency Cepstral Coefficient (MFCC) from the training and test data.
-if [ $stage -le 2 ]; then
-    println "";
-    println "### BEGIN - FEATURE EXTRACTION ###";
-    timer=$SECONDS;
-    
+if [ $stage -le 3 ]; then
+    echo "Extract MFCC features"
+    # Extract the Mel Frequency Cepstral Coefficient (MFCC) from the training and test data.
     for i in train eval test ; do
         steps/make_mfcc.sh \
         --nj $num_jobs \
@@ -101,49 +84,94 @@ if [ $stage -le 2 ]; then
         utils/validate_data_dir.sh "$data/$i" \
         || utils/fix_data_dir.sh "$data"/"$i" || exit 1;
     done
-    
-    println "";
-    println "### END - FEATURE EXTRACTION ### -Elapsed: $(((SECONDS - timer) / 3600))hrs $((((SECONDS - timer) / 60) % 60))min $(((SECONDS - timer) % 60))sec";
 fi
 
 
-# if [ $stage -le 3 ]; then
-
-#     if [ ! -d "$lang" ]; then
-#         echo "Create the lexicon"
-#         [ -d $localdict ] && rm -r $localdict
-#         mkdir -p $localdict "$lang"
-#         local/prep_lang.sh \
-#         $prondict        \
-#         $localdict   \
-#         "$lang"
+# if [ $stage -le 4 ]; then
+#     if [ ! -s "$lm_trainingset" ]; then
+#         echo "Create a LM training set from the Icelandic Gigaword corpus"
+#         local/prep_rmh_lm_trainingdata.sh $rmh_corpus $lm_traindir
 #     fi
-
-#     echo "Preparing a pruned trigram language model"
-#     utils/slurm.pl --mem 16G "$lmdir"/log/make_LM_3gsmall.log \
-#     local/make_LM.sh \
-#     --order 3 --small true --carpa false \
-#     $lm_trainingset "$lang" \
-#     $localdict/lexicon.txt "$lmdir" \
-#     || error 1 "Failed creating a pruned trigram language model"
-
-
-#     echo "Preparing an unpruned 4g LM"
-#     utils/slurm.pl --mem 20G "$lmdir"/log/make_LM_4g.log \
-#     local/make_LM.sh \
-#     --order 4 --small false --carpa true \
-#     $lm_trainingset "$lang" \
-#     $localdict/lexicon.txt "$lmdir" \
-#     || error 1 "Failed creating an unpruned 4-gram language model"
-
-#     echo "Make a zerogram language model to be able to check the effect of"
-#     echo "the language model in the ASR results"
-#     utils/slurm.pl "$lmdir"/log/make_zerogram_LM.log \
-#     local/make_zgLM.sh \
-#     "$lang" $localdict/lexicon.txt "$lmdir"/lang_zg \
-#     || error 1 "Failed creating a zerogram language model"
-
 # fi
+
+if [ $stage -le 2 ]; then
+    
+    echo "Identify OOV words"
+    cut -d' ' -f2- "$data"/train/text \
+    | tr ' ' '\n' | sort -u \
+    > "$data"/train/wordlist.txt
+    
+    comm -23 "$data"/train/wordlist.txt \
+    <(cut -f1 $prondict_orig | sort -u) > "$data"/train/oov_wordlist.txt
+    
+    echo "Use a grapheme-to-phoneme model to generate the pronunciation of OOV words in the training set"
+    g2p.py --apply "$data"/train/oov_wordlist.txt --model /models/g2p/sequitur/talromur/ipd_clean_slt2018.mdl \
+    --encoding="UTF-8" > "$data"/train/oov_with_pron.txt &
+    wait
+    
+    echo "Add the OOV words to the prondict"
+    cat $prondict_orig "$data"/train/oov_with_pron.txt | sort -k1,1 | uniq > "$prondict"
+    
+    for n in eval test; do
+        nb_tokens=$(cut -d' ' -f2- $data/$n/text | wc -w)
+        cut -d' ' -f2- $data/$n/text \
+        | tr ' ' '\n' | sort |uniq -c \
+        > $data/$n/words.cnt
+        
+        comm -23 <(awk '$2 ~ /[[:print:]]/ { print $2 }' $data/$n/words.cnt | sort) \
+        <(cut -f1 $prondict | sort -u) > $data/$n/vocab_text_only.tmp
+        nb_oov=$(join -1 1 -2 1 $data/$n/vocab_text_only.tmp <(awk '$2 ~ /[[:print:]]/ { print $2" "$1 }' $data/$n/words.cnt | sort -k1,1) \
+        | sort | awk '{total = total + $2}END{print total}')
+        oov=$(echo "scale=3;$nb_oov/$nb_tokens*100" | bc)
+        echo "The out of vocabulary rate for $n is:"; echo "$oov"
+    done
+    # The out of vocabulary rate for eval is:
+    # 2.500
+    # The out of vocabulary rate for test is:
+    # 2.700
+fi
+
+if [ $stage -le 4 ]; then
+    if [ ! -d "$lang" ]; then
+        echo "Create the lexicon"
+        [ -d $localdict ] && rm -r $localdict
+        mkdir -p $localdict "$lang"/log
+        utils/slurm.pl --mem 4G "$lang"/log/prep_lang.log \
+        local/prep_lang.sh \
+        $prondict        \
+        $localdict   \
+        "$lang"
+    fi
+    
+    echo "Preparing a pruned trigram language model"
+    mkdir -p "$data"/log
+    utils/slurm.pl --mem 24G "$data"/log/make_LM_3gsmall.log \
+    local/make_LM.sh \
+    --order 3 --carpa false \
+    --min1cnt 20 --min1cnt 10 --min3cnt 2 \
+    $lm_trainingset "$lang" \
+    $localdict/lexicon.txt "$data" \
+    || error 1 "Failed creating a pruned trigram language model"
+    
+    
+    echo "Preparing an unpruned 4g LM"
+    mkdir -p "$data"/log
+    utils/slurm.pl --mem 32G "$data"/log/make_LM_4g.log \
+    local/make_LM.sh \
+    --order 4 --carpa true \
+    --min1cnt 3 --min2cnt 1 --min3cnt 0 \
+    $lm_trainingset "$lang" \
+    $localdict/lexicon.txt "$data" \
+    || error 1 "Failed creating an unpruned 4-gram language model"
+    
+    # echo "Make a zerogram language model to be able to check the effect of"
+    # echo "the language model in the ASR results"
+    # utils/slurm.pl "$data"/log/make_zerogram_LM.log \
+    # local/make_zgLM.sh \
+    # "$lang" $localdict/lexicon.txt "$data"/lang_zg \
+    # || error 1 "Failed creating a zerogram language model"
+    
+fi
 
 if [ $stage -le 4 ]; then
     echo "Make subsets of the training data to use for the first mono and triphone trainings"
@@ -156,7 +184,7 @@ if [ $stage -le 4 ]; then
 fi
 
 # Note! Read the following over. I made some changes since I'm using Roberts
-# models in the first test. $lang should be $lmdir/lang
+# models in the first test. $lang should be "$data"/lang
 if [ $stage -le 5 ]; then
     
     echo "Train a mono system"
@@ -183,7 +211,7 @@ fi
 
 if [ $stage -le 6 ]; then
     echo "First triphone decoding"
-    utils/mkgraph.sh $lmdir/lang_3gsmall $exp/tri1 $exp/tri1/graph
+    utils/mkgraph.sh "$data"/lang_3gsmall $exp/tri1 $exp/tri1/graph
     
     for dir in eval test; do
         (
@@ -195,7 +223,7 @@ if [ $stage -le 6 ]; then
             
             steps/lmrescore_const_arpa.sh \
             --cmd "$decode_cmd" \
-            $lmdir/lang_{3gsmall,5g} $data/$dir \
+            "$data"/lang_{3gsmall,5g} $data/$dir \
             $exp/tri1/decode_$dir \
             $exp/tri1/decode_${dir}_rescored
         ) &
@@ -224,7 +252,7 @@ fi
 
 if [ $stage -le 8 ]; then
     echo "Second triphone decoding"
-    utils/mkgraph.sh $lmdir/lang_3gsmall $exp/tri2 $exp/tri2/graph
+    utils/mkgraph.sh "$data"/lang_3gsmall $exp/tri2 $exp/tri2/graph
     
     for dir in eval test; do
         (
@@ -236,7 +264,7 @@ if [ $stage -le 8 ]; then
             
             steps/lmrescore_const_arpa.sh \
             --cmd "$decode_cmd" \
-            $lmdir/lang_{3gsmall,5g} $data/$dir \
+            "$data"/lang_{3gsmall,5g} $data/$dir \
             $exp/tri2/decode_$dir \
             $exp/tri2/decode_${dir}_rescored
         ) &
@@ -263,7 +291,7 @@ fi
 
 if [ $stage -le 10 ]; then
     echo "Third triphone decoding"
-    utils/mkgraph.sh $lmdir/lang_3gsmall $exp/tri3 $exp/tri3/graph
+    utils/mkgraph.sh "$data"/lang_3gsmall $exp/tri3 $exp/tri3/graph
     
     for dir in eval test; do
         (
@@ -275,7 +303,7 @@ if [ $stage -le 10 ]; then
             
             steps/lmrescore_const_arpa.sh \
             --cmd "$decode_cmd" \
-            $lmdir/lang_{3gsmall,5g} $data/$dir \
+            "$data"/lang_{3gsmall,5g} $data/$dir \
             $exp/tri3/decode_$dir \
             $exp/tri3/decode_${dir}_rescored
         ) &
@@ -301,7 +329,7 @@ fi
 
 if [ $stage -le 12 ]; then
     echo "4th triphone decoding"
-    utils/mkgraph.sh $lmdir/lang_3gsmall $exp/tri4 $exp/tri4/graph
+    utils/slurm.pl --mem 12G "$exp"/log/mkgraph.log utils/mkgraph.sh "$data"/lang_3gsmall $exp/tri4 $exp/tri4/graph
     
     for dir in eval test; do
         (
@@ -314,7 +342,7 @@ if [ $stage -le 12 ]; then
             
             steps/lmrescore_const_arpa.sh \
             --cmd "$decode_cmd" \
-            $lmdir/lang_{3gsmall,5g} \
+            "$data"/lang_{3g,4g} \
             $data/${dir} $exp/tri4/decode_$dir \
             $exp/tri4/decode_${dir}_rescored
         ) &
@@ -322,7 +350,4 @@ if [ $stage -le 12 ]; then
     wait
 fi
 
-
-println ""
-println "### DONE ###"
-println "Total Elapsed: $(((SECONDS - start) / 3600))hrs $((((SECONDS - start) / 60) % 60))min $(((SECONDS - start) % 60))sec";
+exit 0
