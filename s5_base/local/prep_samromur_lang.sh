@@ -15,7 +15,7 @@ fi
 textfile=$1 # training/text
 data_dir=$2
 dict_dir=$data_dir/local/dict
-g2p_model=${3:-/data/models/g2p/sequitur/althingi/g2p.mdl}
+g2p_model=${3:-/data/models/g2p/sequitur/talromur/ipd_clean_slt2018.mdl}
 
 tmp_dir=$data_dir/.tmp/
 mkdir -p $tmp_dir
