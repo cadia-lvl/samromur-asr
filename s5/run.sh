@@ -145,7 +145,7 @@ if [ $stage -le 4 ]; then
     
     echo "Preparing a pruned trigram language model"
     mkdir -p "$data"/log
-    utils/slurm.pl --mem 24G "$data"/log/make_LM_3gsmall.log \
+    utils/slurm.pl --mem 24G "$data"/log/make_LM_3g.log \
     local/make_LM.sh \
     --order 3 --carpa false \
     --min1cnt 20 --min1cnt 10 --min3cnt 2 \
@@ -211,7 +211,7 @@ fi
 
 if [ $stage -le 6 ]; then
     echo "First triphone decoding"
-    utils/mkgraph.sh "$data"/lang_3gsmall $exp/tri1 $exp/tri1/graph
+    utils/mkgraph.sh "$data"/lang_3g $exp/tri1 $exp/tri1/graph
     
     for dir in eval test; do
         (
@@ -223,7 +223,7 @@ if [ $stage -le 6 ]; then
             
             steps/lmrescore_const_arpa.sh \
             --cmd "$decode_cmd" \
-            "$data"/lang_{3gsmall,5g} $data/$dir \
+            "$data"/lang_{3g,4g} $data/$dir \
             $exp/tri1/decode_$dir \
             $exp/tri1/decode_${dir}_rescored
         ) &
@@ -252,7 +252,7 @@ fi
 
 if [ $stage -le 8 ]; then
     echo "Second triphone decoding"
-    utils/mkgraph.sh "$data"/lang_3gsmall $exp/tri2 $exp/tri2/graph
+    utils/mkgraph.sh "$data"/lang_3g $exp/tri2 $exp/tri2/graph
     
     for dir in eval test; do
         (
@@ -264,7 +264,7 @@ if [ $stage -le 8 ]; then
             
             steps/lmrescore_const_arpa.sh \
             --cmd "$decode_cmd" \
-            "$data"/lang_{3gsmall,5g} $data/$dir \
+            "$data"/lang_{3g,4g} $data/$dir \
             $exp/tri2/decode_$dir \
             $exp/tri2/decode_${dir}_rescored
         ) &
@@ -291,7 +291,7 @@ fi
 
 if [ $stage -le 10 ]; then
     echo "Third triphone decoding"
-    utils/mkgraph.sh "$data"/lang_3gsmall $exp/tri3 $exp/tri3/graph
+    utils/mkgraph.sh "$data"/lang_3g $exp/tri3 $exp/tri3/graph
     
     for dir in eval test; do
         (
@@ -303,7 +303,7 @@ if [ $stage -le 10 ]; then
             
             steps/lmrescore_const_arpa.sh \
             --cmd "$decode_cmd" \
-            "$data"/lang_{3gsmall,5g} $data/$dir \
+            "$data"/lang_{3g,4g} $data/$dir \
             $exp/tri3/decode_$dir \
             $exp/tri3/decode_${dir}_rescored
         ) &
@@ -329,7 +329,7 @@ fi
 
 if [ $stage -le 12 ]; then
     echo "4th triphone decoding"
-    utils/slurm.pl --mem 12G "$exp"/log/mkgraph.log utils/mkgraph.sh "$data"/lang_3gsmall $exp/tri4 $exp/tri4/graph
+    utils/slurm.pl --mem 12G "$exp"/log/mkgraph.log utils/mkgraph.sh "$data"/lang_3g $exp/tri4 $exp/tri4/graph
     
     for dir in eval test; do
         (
