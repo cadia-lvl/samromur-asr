@@ -6,148 +6,271 @@
 #SBATCH --output=logs/samrun%J.out
 #SBATCH --nodelist=terra
 
+# To be run from the s5_base directory
+
 . ./cmd.sh
 . ./path.sh
 # setup the steps and utils directories
 . ./setup.sh
+. ./local/utils.sh
 
-set -euo pipefail
+set -eo pipefail
 
-samromur_root=samromur
+# NOTE! In the future the ASR data, LM training text and pronunciation dictionary
+# will be downloaded from online first, e.g. Clarin
+samromur_root=/data/asr/samromur/samromur_ldc #samromur
+lm_train=/models/samromur/rmh_2020-11-23_uniq.txt
+prondict_orig=/models/samromur/prondict_rmh_2020-12-02.txt
+prondict=data/prondict_w_samromur.txt
+g2p_model=../preprocessing/g2p/ipd_clean_slt2018.mdl
 stage=0
 
 . utils/parse_options.sh
 
 #TODO: set the samromur data and metadata variables within path.sh
-mfccdir=`pwd`/mfccs
-num_jobs=10
+mfccdir=mfcc
+num_jobs=20
+nj_decode=32
+localdict=data/local/dict
 
 if [ $stage -le 0 ]; then
-  echo "Create training data from samromur training"
-  local/samromur_data_prep.sh $samromur_root training data
-  local/samromur_data_prep.sh $samromur_root test data
-  local/samromur_data_prep.sh $samromur_root eval data
-
-  utils/combine_data.sh data/train data/samromur_training
-  utils/combine_data.sh data/dev data/samromur_test
-  utils/combine_data.sh data/eval data/samromur_eval
-  utils/fix_data_dir.sh data/train
-  utils/fix_data_dir.sh data/dev
-  utils/fix_data_dir.sh data/eval
+    echo "Create training data"
+    # NOTE! I would rather like "train" than "training"
+    local/samromur_data_prep.sh $samromur_root train data
+    local/samromur_data_prep.sh $samromur_root dev data
+    local/samromur_data_prep.sh $samromur_root eval data
+    
+    utils/fix_data_dir.sh data/train
+    utils/fix_data_dir.sh data/dev
+    utils/fix_data_dir.sh data/eval
 fi
 
 # Prepare features
 if [ $stage -le 1 ]; then
-  echo "Make mfccs"
-  # Make MFCCs for each dataset
-  for name in train dev eval; do
-    steps/make_mfcc.sh --mfcc-config conf/mfcc.conf \
-      --nj ${num_jobs} --cmd "$train_cmd --max-jobs-run 99" \
-      data/${name} exp/make_mfcc/${name} $mfccdir
-    utils/fix_data_dir.sh data/${name}
-  done
+    echo "Make mfccs"
+    # Make MFCCs for each dataset
+    for name in train eval dev; do
+        steps/make_mfcc.sh \
+        --mfcc-config conf/mfcc.conf \
+        --nj ${num_jobs} \
+        --cmd "$train_cmd" \
+        data/${name} exp/make_mfcc $mfccdir \
+        || error 1 "Failed creating MFCC features";
+    done
 fi
 
 if [ $stage -le 2 ]; then
-  echo "Comute cmvn"
-  for name in train dev eval; do
-    steps/compute_cmvn_stats.sh data/${name} exp/make_mfcc/${name} $mfccdir
-    utils/fix_data_dir.sh data/${name}
-    utils/validate_data_dir.sh data/${name}
-  done
+    echo "Comute cmvn"
+    for name in train eval dev; do
+        steps/compute_cmvn_stats.sh \
+        data/${name} exp/make_mfcc $mfccdir;
+        
+        utils/validate_data_dir.sh data/"$name" \
+        || utils/fix_data_dir.sh data/"$name" || exit 1;
+    done
 fi
 
 if [ $stage -le 3 ]; then
-  echo "Prepare dict and lang directories"
-  local/prep_samromur_lang.sh data/train/text data
+    echo "Identify OOV words"
+    cut -d' ' -f2- data/train/text \
+    | tr ' ' '\n' | sort -u \
+    > data/train/wordlist.txt || exit 1;
+    
+    comm -23 data/train/wordlist.txt \
+    <(cut -f1 $prondict_orig | sort -u) \
+    > data/train/oov_wordlist.txt || exit 1;
+    
+    echo "Use a grapheme-to-phoneme model to generate the pronunciation of OOV words in the training set"
+    g2p.py --apply data/train/oov_wordlist.txt --model $g2p_model \
+    --encoding="UTF-8" > data/train/oov_with_pron.txt || exit 1;
+    
+    echo "Add the OOV words to the prondict"
+    cat $prondict_orig data/train/oov_with_pron.txt | sort -k1,1 | uniq > "$prondict" || exit 1;
+    
+    for n in eval dev; do
+        nb_tokens=$(cut -d' ' -f2- data/$n/text | wc -w)
+        cut -d' ' -f2- data/$n/text \
+        | tr ' ' '\n' | sort |uniq -c \
+        > data/$n/words.cnt || exit 1;
+        
+        comm -23 <(awk '$2 ~ /[[:print:]]/ { print $2 }' data/$n/words.cnt | sort) \
+        <(cut -f1 $prondict | sort -u) > data/$n/vocab_text_only.tmp
+        nb_oov=$(join -1 1 -2 1 data/$n/vocab_text_only.tmp <(awk '$2 ~ /[[:print:]]/ { print $2" "$1 }' data/$n/words.cnt | sort -k1,1) \
+        | sort | awk '{total = total + $2}END{print total}')
+        oov=$(echo "scale=3;$nb_oov/$nb_tokens*100" | bc)
+        echo "The out of vocabulary rate for $n is: $oov" >> oov_rate || exit 1;
+    done
 fi
 
 if [ $stage -le 4 ]; then
-  echo "Create 3gram language model from kenlm"
-  cat data/train/text | cut -d' ' -f2- | sed -e \
- 's/[,.?!]//g' > data/text_lm_training.txt
+    if [ ! -d data/lang ]; then
+        echo "Create the lexicon"
+        [ -d $localdict ] && rm -r $localdict
+        mkdir -p $localdict data/lang/log
+        utils/slurm.pl --mem 4G data/lang/log/prep_lang.log \
+        local/prep_lang.sh \
+        $prondict        \
+        $localdict   \
+        data/lang
+    fi
+fi
 
-  mkdir -p data/lang_3gsmall
-
-  # language  modeling files are typically in data/lang_Xgram
-  $big_memory_cmd logs/make_LM_3gsmall.log local/make_LM.sh --order 3 \
-  --small true --carpa false data/text_lm_training.txt data/lang/ \
-  data/local/dict/lexicon.txt data/lang_3gsmall
+if [ $stage -le 5 ]; then
+    echo "Preparing a pruned trigram language model"
+    mkdir -p data/log
+    utils/slurm.pl --mem 24G data/log/make_LM_3g.log \
+    local/make_LM.sh \
+    --order 3 --carpa false \
+    --min1cnt 20 --min2cnt 10 --min3cnt 2 \
+    $lm_train data/lang \
+    $localdict/lexicon.txt data \
+    || error 1 "Failed creating a pruned trigram language model"
+    
+    echo "Preparing an unpruned 4g LM"
+    utils/slurm.pl --mem 32G data/log/make_LM_4g.log \
+    local/make_LM.sh \
+    --order 4 --carpa true \
+    --min1cnt 1 --min2cnt 0 --min3cnt 0 \
+    $lm_train data/lang \
+    $localdict/lexicon.txt data \
+    || error 1 "Failed creating an unpruned 4-gram language model"
+    
 fi
 
 # train a monophone system
-if [ $stage -le 5 ]; then
-  utils/subset_data_dir.sh --shortest data/train 500 data/train_500short
-
-  echo "Train monophone model"
-  steps/train_mono.sh --boost-silence 1.25 --nj 5 --cmd "$train_cmd" \
-    data/train_500short data/lang exp/mono
-
-  # TODO: add decode variable
-  echo "Create decoding graph"
-  (
-    utils/mkgraph.sh data/lang_3gsmall \
-      exp/mono exp/mono/graph_3gram
-    for test in dev; do
-      steps/decode.sh --nj ${num_jobs} --cmd "$decode_cmd" exp/mono/graph_3gram \
-        data/$test exp/mono/decode_3gram_$test
-    done
-  )&
-
-  echo "Create align"
-  steps/align_si.sh --boost-silence 1.25 --nj 5 --cmd "$train_cmd" \
-    data/train data/lang exp/mono exp/mono_ali_train
-fi
-
-# train a first delta + delta-delta triphone(tri1) system on all utterances
 if [ $stage -le 6 ]; then
-  echo "Train deltas triphone1 model"
-  steps/train_deltas.sh --boost-silence 1.25 --cmd "$train_cmd" \
-    2000 10000 data/train data/lang exp/mono_ali_train exp/samromur_tri1
-
-  # decode using the tri1 model
-  echo "Create deltas decoding graph"
-  (
-    utils/mkgraph.sh data/lang_3gsmall \
-      exp/samromur_tri1 exp/samromur_tri1/graph_3gsmall
-    for test in dev; do
-      steps/decode.sh --nj 5 --cmd "$decode_cmd" exp/samromur_tri1/graph_3gsmall \
-      data/$test exp/samromur_tri1/decode_3gsmall_$test
-      steps/lmrescore.sh --cmd "$decode_cmd" data/lang_{3gsmall,3gmed} \
-        data/$test exp/samromur_tri1/decode_{3gsmall,3gmed}_$test
-      steps/lmrescore_const_arpa.sh \
-        --cmd "$decode_cmd" data/lang_{3gsmall,3glarge} \
-        data/$test exp/samromur_tri1/decode_{3gsmall,3glarge}_$test
-    done
-  )&
-
-  steps/align_si.sh --nj 5 --cmd "$train_cmd" \
-    data/train data/lang exp/samromur_tri1 exp/tri1_ali_train
+    echo "Make subsets of the training data to use for the first mono and triphone trainings"
+    
+    utils/subset_data_dir.sh data/train 40000 data/train_40k
+    utils/subset_data_dir.sh --shortest data/train_40k 5000 data/train_5kshort
+    utils/subset_data_dir.sh data/train 10000 data/train_20k
 fi
 
-# train an LDA+MLLT system triphone2.
 if [ $stage -le 7 ]; then
-  steps/train_lda_mllt.sh --cmd "$train_cmd" \
-    --splice-opts "--left-context=3 --right-context=3" 2500 15000 \
-    data/train data/lang exp/tri1_ali_train exp/samromur_tri2b
-
-  # decode using the LDA+MLLT model
-  (
-    utils/mkgraph.sh data/lang_3gsmall \
-      exp/samromur_tri2b exp/samromur_tri2b/graph_3gsmall
-    for test in dev; do
-      steps/decode.sh --nj 10 --cmd "$decode_cmd" exp/samromur_tri2b/graph_3gsmall \
-        data/$test exp/samromur_tri2b/decode_3gsmall_$test
-      steps/lmrescore.sh --cmd "$decode_cmd" data/lang_{3gsmall,3gmed} \
-        data/$test exp/samromur_tri2b/decode_{3gsmall,3gmed}_$test
-      steps/lmrescore_const_arpa.sh \
-        --cmd "$decode_cmd" data/lang_{3gsmall,3glarge} \
-        data/$test exp/samromur_tri2b/decode_{3gsmall,3glarge}_$test
-    done
-  )&
-
-  # Align utts using the tri2b model
-  steps/align_si.sh  --nj 5 --cmd "$train_cmd" --use-graphs true \
-    data/train data/lang exp/samromur_tri2b exp/samromur_tri2b_ali_train
+    
+    echo "Train monophone system"
+    steps/train_mono.sh \
+    --nj $num_jobs \
+    --cmd "$train_cmd" \
+    --boost-silence 1.25 \
+    data/train_5kshort \
+    data/lang          \
+    exp/mono
+    
+    echo "mono alignment. Align train_20k to mono"
+    steps/align_si.sh \
+    --nj $num_jobs --cmd "$train_cmd" \
+    data/train_20k data/lang \
+    exp/mono exp/mono_ali
+    
+    echo "First triphone training, delta + delta-delta features"
+    steps/train_deltas.sh  \
+    --cmd "$train_cmd" \
+    2000 10000         \
+    data/train_20k data/lang \
+    exp/mono_ali exp/tri1
+    
 fi
 
+if [ $stage -le 8 ]; then
+    echo "First triphone decoding"
+    utils/mkgraph.sh data/lang_3g exp/tri1 exp/tri1/graph
+    
+    for dir in dev; do
+        (
+            steps/decode.sh \
+            --config conf/decode.config \
+            --nj "$nj_decode" --cmd "$decode_cmd" \
+            exp/tri1/graph data/$dir \
+            exp/tri1/decode_$dir;
+            
+            steps/lmrescore_const_arpa.sh \
+            --cmd "$decode_cmd" \
+            data/lang_{3g,4g} data/$dir \
+            exp/tri1/decode_$dir \
+            exp/tri1/decode_${dir}_rescored
+        ) &
+    done
+    wait
+    
+fi
+
+if [ $stage -le 9 ]; then
+    echo "Aligning train_40k to tri1"
+    steps/align_si.sh \
+    --nj $num_jobs --cmd "$train_cmd" \
+    data/train_40k data/lang \
+    exp/tri1 exp/tri1_ali
+    
+    echo "Training LDA + MLLT system tri2"
+    steps/train_lda_mllt.sh \
+    --cmd "$train_cmd" \
+    --splice-opts "--left-context=3 --right-context=3" \
+    2500 15000 \
+    data/train_40k data/lang \
+    exp/tri1_ali exp/tri2
+    
+fi
+
+if [ $stage -le 10 ]; then
+    echo "Second triphone decoding"
+    utils/mkgraph.sh data/lang_3g exp/tri2 exp/tri2/graph
+    
+    for dir in dev; do
+        (
+            steps/decode.sh \
+            --config conf/decode.config \
+            --nj "$nj_decode" --cmd "$decode_cmd" \
+            exp/tri2/graph data/$dir \
+            exp/tri2/decode_$dir;
+            
+            steps/lmrescore_const_arpa.sh \
+            --cmd "$decode_cmd" \
+            data/lang_{3g,4g} data/$dir \
+            exp/tri2/decode_$dir \
+            exp/tri2/decode_${dir}_rescored
+        ) &
+    done
+    wait
+    
+fi
+
+if [ $stage -le 11 ]; then
+    echo "Aligning the full training set to tri2"
+    steps/align_si.sh \
+    --nj $num_jobs --cmd "$train_cmd" \
+    data/train data/lang \
+    exp/tri2 exp/tri2_ali
+    
+    echo "Train LDA + MLLT + SAT"
+    steps/train_sat.sh    \
+    --cmd "$train_cmd" \
+    4000 40000    \
+    data/train data/lang     \
+    exp/tri2_ali exp/tri3
+    
+fi
+
+if [ $stage -le 12 ]; then
+    echo "Third triphone decoding"
+    utils/mkgraph.sh data/lang_3g exp/tri3 exp/tri3/graph
+    
+    for dir in dev; do
+        (
+            steps/decode_fmllr.sh \
+            --config conf/decode.config \
+            --nj "$nj_decode" --cmd "$decode_cmd" \
+            exp/tri3/graph data/$dir \
+            exp/tri3/decode_$dir;
+            
+            steps/lmrescore_const_arpa.sh \
+            --cmd "$decode_cmd" \
+            data/lang_{3g,4g} data/$dir \
+            exp/tri3/decode_$dir \
+            exp/tri3/decode_${dir}_rescored
+        ) &
+    done
+    wait
+fi
+
+exit 0
