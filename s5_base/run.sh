@@ -8,11 +8,17 @@
 
 # To be run from the s5_base directory
 
+mfccdir=mfcc
+num_jobs=20
+nj_decode=32
+stage=0
+
 . ./cmd.sh
 . ./path.sh
 # setup the steps and utils directories
 . ./setup.sh
 . ./local/utils.sh
+. utils/parse_options.sh
 
 set -eo pipefail
 
@@ -21,21 +27,19 @@ set -eo pipefail
 samromur_root=/data/asr/samromur/samromur_ldc #samromur
 lm_train=/models/samromur/rmh_2020-11-23_uniq.txt
 prondict_orig=/models/samromur/prondict_rmh_2020-12-02.txt
-prondict=data/prondict_w_samromur.txt
 g2p_model=../preprocessing/g2p/ipd_clean_slt2018.mdl
-stage=0
 
-. utils/parse_options.sh
-
-#TODO: set the samromur data and metadata variables within path.sh
-mfccdir=mfcc
-num_jobs=20
-nj_decode=32
+# Created in this script
+prondict=data/prondict_w_samromur.txt
 localdict=data/local/dict
+
+[ ! -d "$samromur_root" ] && echo "$0: expected $samromur_root to exist" && exit 1;
+for f in "$lm_train" "$prondict_orig" "$g2p_model"; do \
+    [ ! -f $f ] && echo "$0: expected $f to exist" && exit 1;
+done
 
 if [ $stage -le 0 ]; then
     echo "Create training data"
-    # NOTE! I would rather like "train" than "training"
     local/samromur_data_prep.sh $samromur_root train data
     local/samromur_data_prep.sh $samromur_root dev data
     local/samromur_data_prep.sh $samromur_root eval data
@@ -53,7 +57,7 @@ if [ $stage -le 1 ]; then
         steps/make_mfcc.sh \
         --mfcc-config conf/mfcc.conf \
         --nj ${num_jobs} \
-        --cmd "$train_cmd" \
+        --cmd "$train_cmd --mem 4G" \
         data/${name} exp/make_mfcc $mfccdir \
         || error 1 "Failed creating MFCC features";
     done
@@ -73,7 +77,7 @@ fi
 if [ $stage -le 3 ]; then
     echo "Identify OOV words"
     cut -d' ' -f2- data/train/text \
-    | tr ' ' '\n' | sort -u \
+    | tr ' ' '\n' | sort -u | grep -Ev '^$' \
     > data/train/wordlist.txt || exit 1;
     
     comm -23 data/train/wordlist.txt \
@@ -87,6 +91,8 @@ if [ $stage -le 3 ]; then
     echo "Add the OOV words to the prondict"
     cat $prondict_orig data/train/oov_with_pron.txt | sort -k1,1 | uniq > "$prondict" || exit 1;
     
+    echo "Calculate the OOV rate in the dev and test set after"
+    echo "incorporating the training text vocabulary into the lexicon"
     for n in eval dev; do
         nb_tokens=$(cut -d' ' -f2- data/$n/text | wc -w)
         cut -d' ' -f2- data/$n/text \
@@ -107,7 +113,7 @@ if [ $stage -le 4 ]; then
         echo "Create the lexicon"
         [ -d $localdict ] && rm -r $localdict
         mkdir -p $localdict data/lang/log
-        utils/slurm.pl --mem 4G data/lang/log/prep_lang.log \
+        $train_cmd --mem 4G data/lang/log/prep_lang.log \
         local/prep_lang.sh \
         $prondict        \
         $localdict   \
@@ -118,7 +124,7 @@ fi
 if [ $stage -le 5 ]; then
     echo "Preparing a pruned trigram language model"
     mkdir -p data/log
-    utils/slurm.pl --mem 24G data/log/make_LM_3g.log \
+    $train_cmd --mem 24G data/log/make_LM_3g.log \
     local/make_LM.sh \
     --order 3 --carpa false \
     --min1cnt 20 --min2cnt 10 --min3cnt 2 \
@@ -127,7 +133,7 @@ if [ $stage -le 5 ]; then
     || error 1 "Failed creating a pruned trigram language model"
     
     echo "Preparing an unpruned 4g LM"
-    utils/slurm.pl --mem 32G data/log/make_LM_4g.log \
+    $train_cmd --mem 32G data/log/make_LM_4g.log \
     local/make_LM.sh \
     --order 4 --carpa true \
     --min1cnt 1 --min2cnt 0 --min3cnt 0 \
@@ -151,7 +157,7 @@ if [ $stage -le 7 ]; then
     echo "Train monophone system"
     steps/train_mono.sh \
     --nj $num_jobs \
-    --cmd "$train_cmd" \
+    --cmd "$train_cmd --mem 4G" \
     --boost-silence 1.25 \
     data/train_5kshort \
     data/lang          \
@@ -165,7 +171,7 @@ if [ $stage -le 7 ]; then
     
     echo "First triphone training, delta + delta-delta features"
     steps/train_deltas.sh  \
-    --cmd "$train_cmd" \
+    --cmd "$train_cmd --mem 4G" \
     2000 10000         \
     data/train_20k data/lang \
     exp/mono_ali exp/tri1
@@ -174,9 +180,10 @@ fi
 
 if [ $stage -le 8 ]; then
     echo "First triphone decoding"
+    $train_cmd --mem 4G exp/tri1/log/mkgraph.log \
     utils/mkgraph.sh data/lang_3g exp/tri1 exp/tri1/graph
     
-    for dir in dev; do
+    for dir in dev eval; do
         (
             steps/decode.sh \
             --config conf/decode.config \
@@ -204,7 +211,7 @@ if [ $stage -le 9 ]; then
     
     echo "Training LDA + MLLT system tri2"
     steps/train_lda_mllt.sh \
-    --cmd "$train_cmd" \
+    --cmd "$train_cmd --mem 4G" \
     --splice-opts "--left-context=3 --right-context=3" \
     2500 15000 \
     data/train_40k data/lang \
@@ -214,9 +221,10 @@ fi
 
 if [ $stage -le 10 ]; then
     echo "Second triphone decoding"
+    $train_cmd --mem 4G exp/tri2/log/mkgraph.log \
     utils/mkgraph.sh data/lang_3g exp/tri2 exp/tri2/graph
     
-    for dir in dev; do
+    for dir in dev eval; do
         (
             steps/decode.sh \
             --config conf/decode.config \
@@ -244,7 +252,7 @@ if [ $stage -le 11 ]; then
     
     echo "Train LDA + MLLT + SAT"
     steps/train_sat.sh    \
-    --cmd "$train_cmd" \
+    --cmd "$train_cmd --mem 4G" \
     4000 40000    \
     data/train data/lang     \
     exp/tri2_ali exp/tri3
@@ -253,9 +261,10 @@ fi
 
 if [ $stage -le 12 ]; then
     echo "Third triphone decoding"
+    $train_cmd --mem 4G exp/tri3/log/mkgraph.log \
     utils/mkgraph.sh data/lang_3g exp/tri3 exp/tri3/graph
     
-    for dir in dev; do
+    for dir in dev eval; do
         (
             steps/decode_fmllr.sh \
             --config conf/decode.config \
@@ -272,5 +281,9 @@ if [ $stage -le 12 ]; then
     done
     wait
 fi
+
+# WER info:
+mkdir -p RESULTS
+for x in exp/*/decode_eval_rescored; do [ -d "$x" ] && grep WER "$x"/wer_* | utils/best_wer.sh; done >> RESULTS
 
 exit 0
