@@ -283,7 +283,6 @@ if [ $stage -le 12 ]; then
 fi
 
 # WER info:
-mkdir -p RESULTS
 for x in exp/*/decode_eval_rescored; do [ -d "$x" ] && grep WER "$x"/wer_* | utils/best_wer.sh; done >> RESULTS
 
 exit 0
