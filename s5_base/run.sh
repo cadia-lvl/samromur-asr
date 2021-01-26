@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright   2020 Reykjavik University (Author: Judy Fong - judyfong@ru.is)
+# Copyright   2020 Reykjavik University (Authors: Judy Fong - judyfong@ru.is, Inga Run Helgadottir - ingarun@ru.is, Michal Borsky - michalb@ru.is)
 # Apache 2.0
 #
 # See ../README.txt for more info on data required.
