@@ -51,7 +51,7 @@ if [ $stage -le 1 ]; then
     echo "Make mfccs"
     for name in train eval dev; do
         steps/make_mfcc.sh --mfcc-config conf/mfcc.conf --nj $nj_train --cmd "$train_cmd" \
-          data/$name exp/make_mfcc $mfccdir || error 1 "Failed creating MFCC features"
+          data/$name exp/make_mfcc $mfccdir || error 1 "Failed creating MFCC features";
     done
 fi
 
@@ -62,9 +62,6 @@ if [ $stage -le 2 ]; then
         utils/validate_data_dir.sh data/"$name" || utils/fix_data_dir.sh data/"$name" || exit 1;
     done
 fi
-
-exit
-
 
 if [ $stage -le 3 ]; then
     echo "Identify OOV words"
@@ -92,7 +89,7 @@ if [ $stage -le 3 ]; then
         nb_oov=$(join -1 1 -2 1 data/$n/vocab_text_only.tmp <(awk '$2 ~ /[[:print:]]/ { print $2" "$1 }' \
            data/$n/words.cnt | sort -k1,1) | sort | awk '{total = total + $2}END{print total}')
         oov=$(echo "scale=3;$nb_oov/$nb_tokens*100" | bc)
-        echo "The out of vocabulary rate for $n is: $oov" || exit 1 #>> oov_rate || exit 1;
+        echo "The out of vocabulary rate for $n is: $oov" || exit 1;
     done > oov_rate
 fi
 
@@ -110,12 +107,12 @@ if [ $stage -le 5 ]; then
     mkdir -p data/log
     $train_cmd --mem 24G data/log/make_LM_3g.log local/make_LM.sh --order 3 --carpa false \
       --min1cnt 20 --min2cnt 10 --min3cnt 2 $lm_train data/lang $localdict/lexicon.txt data \
-      || error 1 "Failed creating a pruned trigram language model"
+      || error 1 "Failed creating a pruned trigram language model";
 
     echo "Preparing an unpruned 4g LM"
     $train_cmd --mem 32G data/log/make_LM_4g.log local/make_LM.sh --order 4 --carpa true \
       --min1cnt 1 --min2cnt 0 --min3cnt 0 $lm_train data/lang $localdict/lexicon.txt data \
-      || error 1 "Failed creating an unpruned 4-gram language model"
+      || error 1 "Failed creating an unpruned 4-gram language model";
 fi
 
 # Subsample train for faster start
@@ -138,9 +135,8 @@ if [ $stage -le 7 ]; then
       exp/mono exp/mono_ali_5k
 
     echo "First triphone on train_5k, delta + delta-delta features"
-    steps/train_deltas.sh --nj $nj_train --cmd "$train_cmd --mem 4G" 2000 10000 data/train_5k \
+    steps/train_deltas.sh --cmd "$train_cmd --mem 4G" 2000 10000 data/train_5k \
       data/lang exp/mono_ali_5k exp/tri1
-
 fi
 
 # Train LDA + MLLT
@@ -150,26 +146,24 @@ if [ $stage -le 8 ]; then
       exp/tri1_ali_10k
 
     echo "Train LDA + MLLT"
-    steps/train_lda_mllt.sh --nj $nj_train --cmd "$train_cmd --mem 4G"  4000 40000 data/train_10k \
-      data/lang exp/tri1_ali_10 exp/tri2
-
+    steps/train_lda_mllt.sh --cmd "$train_cmd --mem 4G"  4000 40000 data/train_10k \
+      data/lang exp/tri1_ali_10k exp/tri2
 fi
 
 # Train LDA + MLLT + SAT
-if [ $stage -le 8 ]; then
+if [ $stage -le 9 ]; then
     echo "Aligning the full training set to tri2"
     steps/align_si.sh --nj $nj_train --cmd "$train_cmd" data/train data/lang exp/tri2 \
       exp/tri2_ali
 
     echo "Train LDA + MLLT + SAT"
-    steps/train_sat.sh --nj $nj_train --cmd "$train_cmd --mem 4G"  4000 40000 data/train \
+    steps/train_sat.sh --cmd "$train_cmd --mem 4G"  4000 40000 data/train \
       data/lang exp/tri2_ali exp/tri3
-
 fi
 
-# Triphone decoding
-if [ $stage -le 9 ]; then
-    echo "Triphone decoding"
+# Tri3 decoding
+if [ $stage -le 10 ]; then
+    echo "Triphone tri3 decoding"
     $train_cmd --mem 4G exp/tri3/log/mkgraph.log utils/mkgraph.sh data/lang_3g exp/tri3 exp/tri3/graph
 
     for dir in dev eval; do
