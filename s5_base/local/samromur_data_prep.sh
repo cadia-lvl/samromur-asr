@@ -15,28 +15,33 @@ set -e
 
 data_type=$2
 data_dir=$3
-audio_src_dir=$1/audio/
-metadata=$1/metadata_v2.tsv
-
+audio_src_dir=$1/audio
+metadata=$1/metadata.tsv
 tmp_dir=$data_dir/${data_type}/.tmp/
+
+# Folder structure setup
+[[ -d $data_dir/$data_type ]] && rm -r $data_dir/$data_type
+mkdir -p $data_dir/$data_type
 mkdir -p $tmp_dir
 
+# Get metadata
 cat $metadata | sed '1d' > $tmp_dir/metadata.tsv
 cat $tmp_dir/metadata.tsv | awk -F'\t' '{print($1"\t"$2"\t"$3"\t"$10"\t"$11)}' \
-> $tmp_dir/usefuldata.tsv
+  > $tmp_dir/usefuldata.tsv
 
 i=1
 while IFS=$'\t' read -r id name spk sentence type; do
     if [ "$type" = "$data_type" ]; then
         # create utt2spk
-        echo "$spk-$id $spk" >> $data_dir/${data_type}/utt2spk
+        echo "$spk-$id $spk" >> $data_dir/$data_type/utt2spk
         # create normalized text file
-        echo "$spk-$id $sentence" >> $data_dir/${data_type}/text
+        echo "$spk-$id $sentence" >> $data_dir/$data_type/text
         # create wav.scp
-        echo "$spk-$id sox -twav - -c1 -esigned -r16000 -G -twav - < $audio_src_dir/$name |" >> $data_dir/${data_type}/wav.scp
+        echo "$spk-$id sox -twav - -c1 -esigned -r16000 -G -twav - < $audio_src_dir/$name |" \
+          >> $data_dir/$data_type/wav.scp
     fi
 done < $tmp_dir/usefuldata.tsv
 
-utils/utt2spk_to_spk2utt.pl $data_dir/${data_type}/utt2spk > $data_dir/${data_type}/spk2utt
+utils/utt2spk_to_spk2utt.pl $data_dir/$data_type/utt2spk > $data_dir/$data_type/spk2utt
 
 rm -rf $tmp_dir
