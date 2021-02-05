@@ -49,8 +49,6 @@ def append_to_file(df, audio_dir: str, text, wavscp, utt2spk, spk2gender):
     """
     Append relevant data to the files
     """
-    # NOTE! If we use something else that a counter in the ID, e.g. the recording ID,
-    # we could skip the loop and just used vectorized operations
     for i in df.index:
         utt_id = f"{df.at[i, 'speaker_id']}-{i}"
         text.write(f"{utt_id} {df.at[i, 'sentence_norm']}\n")
