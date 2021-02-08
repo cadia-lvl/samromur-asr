@@ -55,7 +55,7 @@ if __name__ == "__main__":
     parser.add_argument("--audio", required=True, type=str,
                         help="Path to audio corpus")
     parser.add_argument("--metadata", required=True, type=str,
-                        help="Paht to the metadatafile")
+                        help="Path to the metadatafile")
     parser.add_argument("--lang", required=True, type=str,
                         help="Use to distinguish between different runs")
     parser.add_argument("--create_ids", type=bool, default=False,
