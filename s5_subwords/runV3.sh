@@ -8,9 +8,18 @@
 # Modified in 2020 for Icelandic by Svanhvít Lilja Ingólfsdóttir 
 #                                   David Erik Mollberg
 
+#SBATCH --mem=12G
+#SBATCH --output=output.log
+
+# set -e - Stop the script if any component returns non-zero
+# set -u - Stop the script if any variables are unbound
+# set -x - Extreme debug mode
+# set -o pipefail - Stop the script if something in a pipeline fail
+set -exo pipefail
+
 
 num_jobs=10
-num_decode_jobs=12
+num_decode_jobs=20
 decode_gmm=true
 stage=0
 create_mfcc=true
@@ -22,6 +31,8 @@ method='bpe'
 . utils/parse_options.sh || exit 1;
 . path.sh
 . cmd.sh 
+
+
 
 #0_sb_mal_bpe_just_transcripts: subword, malrómur, Byte pair encoding, just transcripts
 #1_sb_mal_bpe_althingi: subword, malrómur, byte pair encoding,  LMtext.althingi.txt 
@@ -203,11 +214,11 @@ if [ $stage -le 8 ] && $decode_gmm; then
                    exp/$lang/$tri \
                    exp/$lang/$tri/graph || exit 1;
 
-  steps/decode.sh --nj $num_decode_jobs \
-                  --cmd "$decode_cmd" \
-                  exp/$lang/$tri/graph \
-                  data/$lang/test \
-                  exp/$lang/$tri/decode || exit 1;
+  steps/decode_fmllr.sh --nj $num_decode_jobs \
+                        --cmd "$decode_cmd" \
+                        exp/$lang/$tri/graph \
+                        data/$lang/test \
+                        exp/$lang/$tri/decode || exit 1;
 fi
 
 echo "$0: training succeed"

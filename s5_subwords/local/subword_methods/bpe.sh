@@ -3,6 +3,7 @@
 #
 # 2020 David Erik Mollberg 
 #
+set -e
 
 lang=$1
 text_corpus=$2 
