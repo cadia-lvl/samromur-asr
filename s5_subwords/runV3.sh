@@ -97,7 +97,6 @@ echo ===========================================================================
 echo "                		Creating MFCC			                "
 echo ============================================================================
   for i in training test; do
-    utils/fix_data_dir.sh data/$lang/$i 
     
     steps/make_mfcc.sh --cmd "$train_cmd" \
                        --nj $num_jobs \
@@ -108,6 +107,8 @@ echo ===========================================================================
     steps/compute_cmvn_stats.sh data/$lang/$i \
                                 exp/$lang/mfcc/log/cmvn_stats \
                                 exp/$lang/mfcc/$i || exit 1;
+    
+    utils/validate_data_dir.sh data/$lang/$i || utils/fix_data_dir.sh data/$lang/$i || exit 1;
   done
 fi
 
