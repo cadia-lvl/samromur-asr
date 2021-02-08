@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 
 # Copyright 2014 QCRI (author: Ahmed Ali)
 #           2019 Dongji Gao
@@ -35,10 +35,10 @@ method='bpe'
 AUDIO=/data/asr/malromur/malromur2017/correct
 
 #samromur_root=/data/asr/samromur/samromur_ldc
-METADATA=/home/derik/work/tools/normalize/malromur/normalized_files/malromur_metadata.tsv
+METADATA=/data/asr/malromur/malromur2017/malromur_metadata.tsv
 
 # Text corpus for the LM
-text_corpus=/home/derik/work/tools/normalize/malromur/normalized_files/corpus.txt
+text_corpus=/data/asr/malromur/malromur2017/malromur_corpus.txt
 
 
 # Todo add dependency check 
@@ -97,7 +97,7 @@ echo ===========================================================================
 echo "                		Creating MFCC			                "
 echo ============================================================================
   for i in training test; do
-    
+    #utils/fix_data_dir.sh data/$lang/$i
     steps/make_mfcc.sh --cmd "$train_cmd" \
                        --nj $num_jobs \
                        data/$lang/$i \
