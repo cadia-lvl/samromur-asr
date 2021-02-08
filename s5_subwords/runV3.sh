@@ -19,10 +19,9 @@ train_mono=true
 lang="test_bpe"
 method='bpe'
 
-
-. cmd.sh 
-. path.sh
 . utils/parse_options.sh || exit 1;
+. path.sh
+. cmd.sh 
 
 #0_sb_mal_bpe_just_transcripts: subword, malrómur, Byte pair encoding, just transcripts
 #1_sb_mal_bpe_althingi: subword, malrómur, byte pair encoding,  LMtext.althingi.txt 
@@ -40,6 +39,12 @@ METADATA=/home/derik/work/tools/normalize/malromur/normalized_files/malromur_met
 
 # Text corpus for the LM
 text_corpus=/home/derik/work/tools/normalize/malromur/normalized_files/corpus.txt
+
+
+# Todo add dependency check 
+# E.g. check whether srilm is installed and the directory and two 
+# files are ok. But not necessary since instructions in readme tell the user to install it.
+
 
 if [ $stage -le 0 ]; then
 echo ============================================================================
@@ -86,7 +91,6 @@ echo ===========================================================================
                       data/$lang/lang_test
 fi
 
-exit 
 
 if [ $stage -le 3 ] && $create_mfcc; then
 echo ===========================================================================
