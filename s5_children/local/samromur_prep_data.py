@@ -15,8 +15,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser(
         description="""This script will output the files text, wav.scp, utt2spk, spk2utt and spk2gender\n
         to data/train, data/eval and data/test, with test/train/eval splits defined in the metadatafile.\n
-        Usage: python3 samromur_prep_data.py <path-to-samromur-audio> <info-file-training>\n
-            E.g. python3 samromur_prep_data.py /data/corpora/samromur/audio/ metadata.tsv\n
+        Usage: python3 samromur_prep_data.py <path-to-samromur-audio> <metadata-file> <output-dir>\n
+            E.g. python3 samromur_prep_data.py /data/corpora/samromur/audio/ /data/corpora/samromur/metadata.tsv data\n
         """
     )
     parser.add_argument(

@@ -25,6 +25,7 @@ set -eo pipefail
 # NOTE! In the future the ASR data, LM training text and pronunciation dictionary
 # will be downloaded from online first, e.g. Clarin
 samromur_root=/data/asr/samromur/samromur_ldc
+samromur_teen=/data/asr/samromur/samromur_teen
 lm_train=/models/samromur/rmh_2020-11-23_uniq.txt
 prondict_orig=/models/samromur/prondict_rmh_2020-12-02.txt
 g2p_model=../preprocessing/g2p/ipd_clean_slt2018.mdl
@@ -34,21 +35,24 @@ prondict=data/prondict_w_samromur.txt
 localdict=data/local/dict
 
 [ ! -d "$samromur_root" ] && echo "$0: expected $samromur_root to exist" && exit 1;
+[ ! -d "$samromur_teen" ] && echo "$0: expected $samromur_root to exist" && exit 1;
 for f in "$lm_train" "$prondict_orig" "$g2p_model"; do \
     [ ! -f $f ] && echo "$0: expected $f to exist" && exit 1;
 done
 
 if [ $stage -le 0 ]; then
     echo "Create ./data directories"
-    for name in train dev eval; do
-        local/samromur_data_prep.sh $samromur_root $name data
-        utils/fix_data_dir.sh data/$name
-    done
+    echo 'Adult speech'
+    python3 local/samromur_prep_data.py "$samromur_root"/audio "$samromur_root"/metadata.tsv data
+    
+    echo "Teenage data"
+    # Because of speaker ID overlap between adults and teenagers I add the letter t to the teen spkIDs
+    sed -r 's/(\.wav[^0-9][0-9]+)\b/\1t/g' "$samromur_teen"/metadata.tsv > data/metadata_teen.tsv
+    python3 local/samromur_prep_data.py "$samromur_teen"/audio data/metadata_teen.tsv data/teen
 fi
 
-# Prepare MFCC features
 if [ $stage -le 1 ]; then
-    echo "Make mfccs"
+    echo "Make MFCC features"
     for name in train eval dev; do
         steps/make_mfcc.sh \
         --mfcc-config conf/mfcc.conf \
@@ -59,7 +63,7 @@ if [ $stage -le 1 ]; then
 fi
 
 if [ $stage -le 2 ]; then
-    echo "Comute cmvn"
+    echo "Comute CMVN"
     for name in train eval dev; do
         steps/compute_cmvn_stats.sh \
         data/$name exp/make_mfcc $mfccdir
@@ -217,29 +221,101 @@ if [ $stage -le 10 ]; then
         ) &
     done
     wait
+    
+    # WER info:
+    for x in exp/*/decode_{eval,dev}_rescored; do
+        [ -d "$x" ] && grep WER "$x"/wer_* | utils/best_wer.sh;
+    done > RESULTS
 fi
-
-# WER info:
-for x in exp/*/decode_{eval,dev}_rescored; do
-    [ -d "$x" ] && grep WER "$x"/wer_* | utils/best_wer.sh;
-done > RESULTS
 
 if [ $stage -le 11 ]; then
     
-    # affix=_1
-    # speed_perturb=true
-    # suffix=
-    # $speed_perturb && suffix=_sp
-    # extractordir=$root_am_modeldir/extractor/$d
-    # amdir=$root_chain/$(cat $KALDI_ROOT/src/.version)/tdnn${affix}$suffix/$d
-    # logdir=$amdir/log
-    # mkdir -p $extractordir $logdir
-    nohup local/chain/run_tdnn.sh --stage 0 --affix=$affix --speed-perturb $speed_perturb \
-    --generate-plots true --zerogram-decoding true \
-    $data/train_okt2017_500k_cleaned data >>$logdir/tdnn$affix.log 2>&1 &
+    echo "Create a joint training set with adult and teenage data"
+    utils/data/combine_data.sh data/all/train data/train data/teen/train
+fi
+
+if [ $stage -le 1 ]; then
+    echo "Make MFCC features"
+    steps/make_mfcc.sh \
+    --mfcc-config conf/mfcc.conf \
+    --nj $nj_train --cmd "$train_cmd" \
+    data/all/train exp/make_mfcc $mfccdir \
+    || error 1 "Failed creating MFCC features";
+    
+    echo "Comute CMVN"
+    steps/compute_cmvn_stats.sh \
+    data/all/train exp/make_mfcc $mfccdir
+    
+    utils/validate_data_dir.sh data/all/train || utils/fix_data_dir.sh data/all/train || exit 1;
+fi
+
+if [ $stage -le 12 ]; then
+    echo "Aligning the combined training set to tri3"
+    steps/align_fmllr.sh \
+    --nj $nj_train \
+    --cmd "$decode_cmd" \
+    data/all/train data/lang \
+    exp/tri3 exp/tri3_ali
+    
+    echo "Train LDA + MLLT + SAT on the combined training set"
+    steps/train_sat.sh \
+    --cmd "$train_cmd --mem 4G"  \
+    4000 40000 data/all/train \
+    data/lang exp/tri3_ali exp/tri4
+fi
+
+if [ $stage -le 13 ]; then
+    echo "Triphone tri4 decoding. Adult + teen data."
+    $train_cmd --mem 4G exp/tri4/log/mkgraph.log \
+    utils/mkgraph.sh \
+    data/lang_3g exp/tri4 \
+    exp/tri4/graph
+    
+    echo "Decode both for adult and teen test sets"
+    for dir in dev eval; do
+        (
+            steps/decode_fmllr.sh \
+            --config conf/decode.config \
+            --nj "$nj_decode"  \
+            --cmd "$decode_cmd" \
+            exp/tri4/graph data/$dir \
+            exp/tri4/decode_$dir;
+            
+            steps/lmrescore_const_arpa.sh \
+            --cmd "$decode_cmd" \
+            data/lang_{3g,4g} data/$dir \
+            exp/tri4/decode_$dir \
+            exp/tri4/decode_${dir}_rescored
+        ) &
+        (
+            steps/decode_fmllr.sh \
+            --config conf/decode.config \
+            --nj "$nj_decode"  \
+            --cmd "$decode_cmd" \
+            exp/tri4/graph data/teen/$dir \
+            exp/tri4/decode_teen_$dir;
+            
+            steps/lmrescore_const_arpa.sh \
+            --cmd "$decode_cmd" \
+            data/lang_{3g,4g} data/teen/$dir \
+            exp/tri4/decode_teen_$dir \
+            exp/tri4/decode_teen_${dir}_rescored
+        ) &
+    done
+    wait
+    
+fi
+
+if [ $stage -le 14 ]; then
+    
+    affix=_7k
+    speed_perturb=true
+    nohup local/chain/run_tdnn_7k.sh --stage 0 --affix=$affix --speed-perturb $speed_perturb \
+    data/all/train data >>logs/tdnn$affix.log 2>&1 &
+    # I want to --generate-plots true --zerogram-decoding true \
     
     # WER info:
-    for x in $exp/chain/tdnn${affix}$suffix/decode*; do [ -d $x ] && grep WER $x/wer_* | utils/best_wer.sh; done >> RESULTS
+    for x in exp/chain/tdnn${affix}/decode*; do [ -d $x ] && grep WER $x/wer_* | utils/best_wer.sh; done >> RESULTS
     
 fi
 
