@@ -97,7 +97,7 @@ def main():
 
             if data_file == "train":
                 # Create new dataframes with only lines containing the current status
-                df_part = df[df["status"].str.contains("training")]
+                df_part = df[df["status"].str.contains("train")]
                 append_to_file(df_part, audio_dir, text, wav, utt2spk, spk2gender)
 
             if data_file == "dev":
