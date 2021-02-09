@@ -1,16 +1,29 @@
 # Samromur specific
-s5_base/data/
-s5_base/exp/
-s5_base/conf/
-s5_base/mfcc/
-s5_base/steps
-s5_base/utils
-s5_base/audio/
+s5*/data/
+s5*/exp/
+s5*/conf/
+s5*/mfcc/
+s5*/steps
+s5*/utils
+s5*/audio/
 local_files/
 
 # local scripts
 s5_inga
 
+# Compiled Object files and python ciles
+*.slo
+*.lo
+*.o
+*.obj
+*.pyc
 
+# Log files
+*.testlog
+*.log
+
+# Temporary files
+*.tmp
+tmp*
 
 notes
