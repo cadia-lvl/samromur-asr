@@ -9,7 +9,7 @@
 #                                   David Erik Mollberg
 
 #SBATCH --mem=12G
-#SBATCH --output=output.log
+#SBATCH --output=output.
 
 # set -e - Stop the script if any component returns non-zero
 # set -u - Stop the script if any variables are unbound
@@ -18,7 +18,7 @@
 set -exo pipefail
 
 
-num_jobs=10
+num_jobs=20
 num_decode_jobs=20
 decode_gmm=true
 stage=0
@@ -31,7 +31,6 @@ method='bpe'
 . utils/parse_options.sh || exit 1;
 . path.sh
 . cmd.sh 
-
 
 
 #0_sb_mal_bpe_just_transcripts: subword, malrómur, Byte pair encoding, just transcripts
@@ -66,6 +65,8 @@ echo ===========================================================================
                                  --lang $lang 
 fi
 
+
+
 if [ $stage -le 1 ]; then
 echo ============================================================================
 echo "                		Using $method          "
@@ -87,9 +88,13 @@ if [ $stage -le 2 ]; then
 echo ============================================================================
 echo "                		Prepare subword text files with $method          "
 echo ============================================================================
-  #text_corpus=data/$lang/all/corpus
+  # This is a hack that will be replaced in future commits
+  cut -d" " -f2- data/$lang/training/text > data/$lang/training/corpus
+  text_corpus=data/$lang/training/corpus
   
   #local/language_modeling/prepare_lm_subword.sh data/$lang/training/text \
+  
+  
   local/language_modeling/prepare_lm_subword.sh $text_corpus \
                               data/$lang/test/text \
                               data/$lang/local/dict/lexicon.txt \
@@ -102,13 +107,11 @@ echo ===========================================================================
                       data/$lang/lang_test
 fi
 
-
 if [ $stage -le 3 ] && $create_mfcc; then
 echo ===========================================================================
 echo "                		Creating MFCC			                "
 echo ============================================================================
   for i in training test; do
-    #utils/fix_data_dir.sh data/$lang/$i
     steps/make_mfcc.sh --cmd "$train_cmd" \
                        --nj $num_jobs \
                        data/$lang/$i \
