@@ -9,7 +9,7 @@
 #                                   David Erik Mollberg
 
 #SBATCH --mem=12G
-#SBATCH --output=output.
+#SBATCH --output=subset_bpe_improvement.log
 
 # set -e - Stop the script if any component returns non-zero
 # set -u - Stop the script if any variables are unbound
@@ -46,7 +46,8 @@ sw_count=1000
 AUDIO=/data/asr/malromur/malromur2017/correct
 
 #samromur_root=/data/asr/samromur/samromur_ldc
-METADATA=/data/asr/malromur/malromur2017/malromur_metadata.tsv
+#METADATA=/data/asr/malromur/malromur2017/malromur_metadata.tsv
+METADATA=/home/derik/work/tools/normalize/malromur/normalized_files/malromur_metadata_subset.tsv
 
 # Text corpus for the LM
 text_corpus=/data/asr/malromur/malromur2017/malromur_corpus.txt
@@ -66,31 +67,44 @@ fi
 
 if [ $stage -le 1 ]; then
 echo ============================================================================
-echo "                		Using $method          "
+echo "               Create $method model and preparing text files         "
 echo ============================================================================
-
-  mkdir -p data/$lang/train/sw
+  # We store the models/segmentation pair codes for the different subwords methods 
+  # in data/$lang/sw. Where sw stands for subwords.
+  subword_dir=data/$lang/sw
+  mkdir -p $subword_dir
 
   if [[ $method == 'bpe' ]]; then
-    ./local/subword_methods/bpe/bpe.sh $lang \
-                                       $text_corpus \
-                                       $sw_count || \
-                                       error 'Failed in bpe.sh'
-
-    for x in train test eval; do
-      ./local/subword_methods/bpe/prepare_subword_text.sh "data/$lang/${x}/text" \
-                                                          "data/$lang/train/sw/pair_codes" \
-                                                          "data/$lang/${x}/text" 
-    done
+    # Form a given text corpus we learn to create subwords we store the "model" as pair_codes
+    python3 local/sw_methods/bpe/learn_bpe.py -i $text_corpus \
+                                              -s $sw_count > $subword_dir/pair_codes
     
+    # Using the pair_codes we subword tokenize the kaldi format text files
+    for x in train test eval; do
+      ./local/sw_methods/bpe/prepare_subword_text.sh data/$lang/${x}/text \
+                                                     $subword_dir/pair_codes \
+                                                     data/$lang/${x}/text 
+    
+    # We again subword tokenize to create a subword lexicon
+    python3 local/sw_methods/bpe/apply_bpe.py -i data/$lang/train/tokens \
+                                              --codes $subword_dir/pair_codes \
+                                              | sed 's/ /\n/g' | sort -u > $subword_dir/subwords
+    done
+
   elif [[ $method == 'unigram' || $method == 'sp_bpe' ]]; then
     echo "To be done"
   elif [[ $method == 'morfessor' ]]; then
     echo "To be done"
   fi 
+  # The following scripts should be run independant of which subword method is chosen
+
+  echo "$0: Preparing lexicon"
+  python3 local/prepare_lexicon.py --i $subword_dir/subwords \
+                                   --o $subword_dir/subword_lexicon \
+                                   --is_subword True
 
   echo "$0: Preparing lexicon, dict folder and lang folder" 
-  local/prepare_dict_subword.sh data/$lang/train/sw/subword_lexicon \
+  local/prepare_dict_subword.sh $subword_dir/subword_lexicon \
                                 data/$lang/train \
                                 data/$lang/local/dict
 
@@ -102,16 +116,22 @@ fi
 
 if [ $stage -le 2 ]; then
 echo ============================================================================
-echo "                		Prepare subword text files with $method          "
+echo "                		Prepare LM with subword text files with $method          "
 echo ============================================================================
-  # This is a hack that will be replaced in future commits
-  cut -d" " -f2- data/$lang/train/text > data/$lang/train/corpus
-  text_corpus=data/$lang/train/corpus
-  
-  #local/language_modeling/prepare_lm_subword.sh data/$lang/train/text \
-  
-  
-  local/language_modeling/prepare_lm_subword.sh $text_corpus \
+
+  echo "Applying $method to $text_corpus"
+  if [[ $method == 'bpe' ]]; then
+    python3 local/sw_methods/bpe/apply_bpe.py -i $text_corpus \
+                                                   --codes $subword_dir/pair_codes \
+                                                   > $subword_dir/text_corpus
+
+  elif [[ $method == 'unigram' || $method == 'sp_bpe' ]]; then
+    echo "To be done"
+  elif [[ $method == 'morfessor' ]]; then
+    echo "To be done"
+  fi 
+
+  local/lm/prepare_lm_subword.sh $subword_dir/text_corpus \
                               data/$lang/test/text \
                               data/$lang/local/dict/lexicon.txt \
                               data/$lang/local/lm \
@@ -127,7 +147,7 @@ if [ $stage -le 3 ] && $create_mfcc; then
 echo ===========================================================================
 echo "                		Creating MFCC			                "
 echo ============================================================================
-  for i in training test; do
+  for i in train test; do
     steps/make_mfcc.sh --cmd "$train_cmd" \
                        --nj $num_jobs \
                        data/$lang/$i \

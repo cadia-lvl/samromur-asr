@@ -9,7 +9,7 @@
 #                                   David Erik Mollberg
 
 #SBATCH --mem=12G
-#SBATCH --output=output.
+#SBATCH --output=logs/subset_baseline.log
 
 # set -e - Stop the script if any component returns non-zero
 # set -u - Stop the script if any variables are unbound
@@ -45,7 +45,8 @@ method='bpe'
 AUDIO=/data/asr/malromur/malromur2017/correct
 
 #samromur_root=/data/asr/samromur/samromur_ldc
-METADATA=/data/asr/malromur/malromur2017/malromur_metadata.tsv
+# METADATA=/data/asr/malromur/malromur2017/malromur_metadata.tsv
+METADATA=/home/derik/work/tools/normalize/malromur/normalized_files/malromur_metadata_subset.tsv
 
 # Text corpus for the LM
 text_corpus=/data/asr/malromur/malromur2017/malromur_corpus.txt
