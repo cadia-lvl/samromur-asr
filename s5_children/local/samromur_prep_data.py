@@ -2,7 +2,7 @@
 
 # Author: David Erik Mollberg, Inga Run Helgadottir (Reykjavik University)
 # Description:
-# This script will output the files text, wav.scp, utt2spk, spk2utt and spk2gender
+# This script will output the files text, wav.scp, utt2spk and spk2utt
 # to data/train, data/eval data/test with test/train/eval splits defined in the metadatafile.
 
 import subprocess
@@ -13,7 +13,7 @@ import pandas as pd
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description="""This script will output the files text, wav.scp, utt2spk, spk2utt and spk2gender\n
+        description="""This script will output the files text, wav.scp, utt2spk and spk2utt\n
         to data/train, data/eval and data/test, with test/train/eval splits defined in the metadatafile.\n
         Usage: python3 samromur_prep_data.py <path-to-samromur-audio> <metadata-file> <output-dir>\n
             E.g. python3 samromur_prep_data.py /data/corpora/samromur/audio/ /data/corpora/samromur/metadata.tsv data\n
@@ -45,7 +45,7 @@ def dir_path(path: str):
         raise argparse.ArgumentTypeError(f"Directory:{path} is not a valid directory")
 
 
-def append_to_file(df, audio_dir: str, text, wavscp, utt2spk, spk2gender):
+def append_to_file(df, audio_dir: str, text, wavscp, utt2spk):
     """
     Append relevant data to the files
     """
@@ -56,9 +56,6 @@ def append_to_file(df, audio_dir: str, text, wavscp, utt2spk, spk2gender):
             f"{utt_id} sox - -c1 -esigned -r {df.at[i, 'sample_rate']} -twav - < {Path(audio_dir).joinpath(df.at[i, 'filename'])} |\n"
         )
         utt2spk.write(f"{utt_id} {df.at[i, 'speaker_id']}\n")
-
-        # This line will cause in error in versions of Samrómur where the speaker is unknown
-        spk2gender.write(f"{df.at[i, 'speaker_id']} {df.at[i, 'sex'][0]}\n")
 
 
 def clean_dir(datadir):
@@ -91,22 +88,20 @@ def main():
 
         with open(f"{datadir}/text", "w") as text, open(
             f"{datadir}/wav.scp", "w"
-        ) as wav, open(f"{datadir}/utt2spk", "w") as utt2spk, open(
-            f"{datadir}/spk2gender", "w"
-        ) as spk2gender:
+        ) as wav, open(f"{datadir}/utt2spk", "w") as utt2spk:
 
             if data_file == "train":
                 # Create new dataframes with only lines containing the current status
                 df_part = df[df["status"].str.contains("train")]
-                append_to_file(df_part, audio_dir, text, wav, utt2spk, spk2gender)
+                append_to_file(df_part, audio_dir, text, wav, utt2spk)
 
             if data_file == "dev":
                 df_part = df[df["status"].str.contains("dev")]
-                append_to_file(df_part, audio_dir, text, wav, utt2spk, spk2gender)
+                append_to_file(df_part, audio_dir, text, wav, utt2spk)
 
             if data_file == "eval":
                 df_part = df[df["status"].str.contains("eval")]
-                append_to_file(df_part, audio_dir, text, wav, utt2spk, spk2gender)
+                append_to_file(df_part, audio_dir, text, wav, utt2spk)
 
         clean_dir(datadir)
 

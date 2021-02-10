@@ -35,7 +35,7 @@ prondict=data/prondict_w_samromur.txt
 localdict=data/local/dict
 
 [ ! -d "$samromur_root" ] && echo "$0: expected $samromur_root to exist" && exit 1;
-[ ! -d "$samromur_teen" ] && echo "$0: expected $samromur_root to exist" && exit 1;
+[ ! -d "$samromur_teen" ] && echo "$0: expected $samromur_teen to exist" && exit 1;
 for f in "$lm_train" "$prondict_orig" "$g2p_model"; do \
     [ ! -f $f ] && echo "$0: expected $f to exist" && exit 1;
 done
@@ -48,7 +48,10 @@ if [ $stage -le 0 ]; then
     echo "Teenage data"
     # Because of speaker ID overlap between adults and teenagers I add the letter t to the teen spkIDs
     sed -r 's/(\.wav[^0-9][0-9]+)\b/\1t/g' "$samromur_teen"/metadata.tsv > data/metadata_teen.tsv
+    # I've removed out the generation of spk2gender for now, since there are also gender N and o
+    # Also, I don't feel like gender will matter for kids
     python3 local/samromur_prep_data.py "$samromur_teen"/audio data/metadata_teen.tsv data/teen
+    
 fi
 
 if [ $stage -le 1 ]; then
@@ -231,22 +234,40 @@ fi
 if [ $stage -le 11 ]; then
     
     echo "Create a joint training set with adult and teenage data"
-    utils/data/combine_data.sh data/all/train data/train data/teen/train
+    utils/data/combine_data.sh data/train_w_teen data/train data/teen/train
 fi
 
 if [ $stage -le 1 ]; then
-    echo "Make MFCC features"
+    echo "Make MFCC features for adult + teen training set"
     steps/make_mfcc.sh \
     --mfcc-config conf/mfcc.conf \
     --nj $nj_train --cmd "$train_cmd" \
-    data/all/train exp/make_mfcc $mfccdir \
+    data/train_w_teen exp/make_mfcc $mfccdir \
     || error 1 "Failed creating MFCC features";
     
     echo "Comute CMVN"
     steps/compute_cmvn_stats.sh \
-    data/all/train exp/make_mfcc $mfccdir
+    data/train_w_teen exp/make_mfcc $mfccdir
     
-    utils/validate_data_dir.sh data/all/train || utils/fix_data_dir.sh data/all/train || exit 1;
+    utils/validate_data_dir.sh data/train_w_teen || utils/fix_data_dir.sh data/train_w_teen || exit 1;
+    
+    echo "Make MFCC features for the teen test data"
+    for name in eval dev; do
+        steps/make_mfcc.sh \
+        --mfcc-config conf/mfcc.conf \
+        --nj $nj_train --cmd "$train_cmd" \
+        data/teen/$name exp/make_mfcc $mfccdir \
+        || error 1 "Failed creating MFCC features";
+    done
+    
+    echo "Comute CMVN"
+    for name in eval dev; do
+        steps/compute_cmvn_stats.sh \
+        data/teen/$name exp/make_mfcc $mfccdir
+        
+        utils/validate_data_dir.sh data/teen/"$name" || utils/fix_data_dir.sh data/teen/"$name" || exit 1;
+    done
+    
 fi
 
 if [ $stage -le 12 ]; then
@@ -254,13 +275,13 @@ if [ $stage -le 12 ]; then
     steps/align_fmllr.sh \
     --nj $nj_train \
     --cmd "$decode_cmd" \
-    data/all/train data/lang \
+    data/train_w_teen data/lang \
     exp/tri3 exp/tri3_ali
     
     echo "Train LDA + MLLT + SAT on the combined training set"
     steps/train_sat.sh \
     --cmd "$train_cmd --mem 4G"  \
-    4000 40000 data/all/train \
+    4000 40000 data/train_w_teen \
     data/lang exp/tri3_ali exp/tri4
 fi
 
@@ -308,10 +329,13 @@ fi
 
 if [ $stage -le 14 ]; then
     
-    affix=_7k
+    affix=_7n
     speed_perturb=true
-    nohup local/chain/run_tdnn_7k.sh --stage 0 --affix=$affix --speed-perturb $speed_perturb \
-    data/all/train data >>logs/tdnn$affix.log 2>&1 &
+    nohup local/chain/run_tdnn.sh \
+    --stage 0 --affix $affix \
+    --speed-perturb $speed_perturb \
+    --generate-plots true \
+    data/train_w_teen data >>logs/tdnn$affix.log 2>&1 &
     # I want to --generate-plots true --zerogram-decoding true \
     
     # WER info:

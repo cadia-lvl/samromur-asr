@@ -39,6 +39,9 @@ remove_egs=true
 common_egs_dir=
 xent_regularize=0.1
 
+# GMM to use for alignments
+gmm=tri4
+
 test_online_decoding=false  # if true, it will run the last decoding stage.
 generate_plots=false
 
@@ -67,9 +70,9 @@ if [ "$speed_perturb" == "true" ]; then
 fi
 
 dir=${dir}${affix:+_$affix}$suffix
-train_set=train_nodup$suffix
-ali_dir=exp/tri4_ali_nodup$suffix
-treedir=exp/chain/tri5_7d_tree$suffix
+train_set=train$suffix
+ali_dir=exp/${gmm}_ali$suffix
+treedir=exp/chain/${gmm}_tree$suffix
 lang=data/lang_chain_2y
 
 
@@ -83,10 +86,10 @@ local/nnet3/run_ivector_common.sh --stage $stage \
 if [ $stage -le 9 ]; then
     # Get the alignments as lattices (gives the LF-MMI training more freedom).
     # use the same num-jobs as the alignments
-    nj=$(cat exp/tri4_ali_nodup$suffix/num_jobs) || exit 1;
+    nj=$(cat exp/tri4_ali$suffix/num_jobs) || exit 1;
     steps/align_fmllr_lats.sh --nj $nj --cmd "$train_cmd" data/$train_set \
-    data/lang exp/tri4 exp/tri4_lats_nodup$suffix
-    rm exp/tri4_lats_nodup$suffix/fsts.*.gz # save space
+    data/lang exp/tri4 exp/tri4_lats$suffix
+    rm exp/tri4_lats$suffix/fsts.*.gz # save space
 fi
 
 
@@ -186,7 +189,7 @@ if [ $stage -le 13 ]; then
     --cleanup.remove-egs $remove_egs \
     --feat-dir data/${train_set}_hires \
     --tree-dir $treedir \
-    --lat-dir exp/tri4_lats_nodup$suffix \
+    --lat-dir exp/tri4_lats$suffix \
     --dir $dir  || exit 1;
     
 fi
