@@ -49,7 +49,7 @@ AUDIO=/data/asr/malromur/malromur2017/correct
 
 #samromur_root=/data/asr/samromur/samromur_ldc
 #METADATA=/data/asr/malromur/malromur2017/malromur_metadata.tsv
-METADATA=/home/derik/work/tools/normalize/malromur/normalized_files/malromur_metadata_subset.tsv
+METADATA=/home/derik/work/tools/normalize/malromur/normalized_files/malromur_metadata_subset.tsv # A small subest of the corpus, used for fast testing.
 
 # Text corpus for the LM
 text_corpus=/data/asr/malromur/malromur2017/malromur_corpus.txt
