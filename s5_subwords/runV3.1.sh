@@ -9,7 +9,7 @@
 #                                   David Erik Mollberg
 
 #SBATCH --mem=12G
-#SBATCH --output=subset_bpe_improvement.log
+#SBATCH --output=logs/subset_bpe_does_this_work.log
 
 # set -e - Stop the script if any component returns non-zero
 # set -u - Stop the script if any variables are unbound
@@ -25,7 +25,7 @@ stage=0
 create_mfcc=true
 train_mono=true
 
-lang="test_bpe"
+lang="bpe_improvement_test"
 method='bpe'
 sw_count=1000
 
@@ -33,6 +33,8 @@ sw_count=1000
 . path.sh
 . cmd.sh 
 
+#rm -r data/$lang/
+#rm -r exp/$lang
 
 #0_sb_mal_bpe_just_transcripts: subword, malrómur, Byte pair encoding, just transcripts
 #1_sb_mal_bpe_althingi: subword, malrómur, byte pair encoding,  LMtext.althingi.txt 
@@ -65,6 +67,7 @@ echo ===========================================================================
                                  --lang $lang 
 fi
 
+
 if [ $stage -le 1 ]; then
 echo ============================================================================
 echo "               Create $method model and preparing text files         "
@@ -84,12 +87,13 @@ echo ===========================================================================
       ./local/sw_methods/bpe/prepare_subword_text.sh data/$lang/${x}/text \
                                                      $subword_dir/pair_codes \
                                                      data/$lang/${x}/text 
-    
+    done
+
     # We again subword tokenize to create a subword lexicon
     python3 local/sw_methods/bpe/apply_bpe.py -i data/$lang/train/tokens \
                                               --codes $subword_dir/pair_codes \
                                               | sed 's/ /\n/g' | sort -u > $subword_dir/subwords
-    done
+    
 
   elif [[ $method == 'unigram' || $method == 'sp_bpe' ]]; then
     echo "To be done"
@@ -122,8 +126,8 @@ echo ===========================================================================
   echo "Applying $method to $text_corpus"
   if [[ $method == 'bpe' ]]; then
     python3 local/sw_methods/bpe/apply_bpe.py -i $text_corpus \
-                                                   --codes $subword_dir/pair_codes \
-                                                   > $subword_dir/text_corpus
+                                              --codes $subword_dir/pair_codes \
+                                              > $subword_dir/text_corpus
 
   elif [[ $method == 'unigram' || $method == 'sp_bpe' ]]; then
     echo "To be done"
@@ -147,18 +151,18 @@ if [ $stage -le 3 ] && $create_mfcc; then
 echo ===========================================================================
 echo "                		Creating MFCC			                "
 echo ============================================================================
-  for i in train test; do
+  for x in train test; do
     steps/make_mfcc.sh --cmd "$train_cmd" \
                        --nj $num_jobs \
-                       data/$lang/$i \
+                       data/$lang/$x \
                        exp/$lang/mfcc/log/make_mfcc \
-                       exp/$lang/mfcc/$i || error 1 "Failed creating MFCC features";
+                       exp/$lang/mfcc/$x || error 1 "Failed creating MFCC features";
 
-    steps/compute_cmvn_stats.sh data/$lang/$i \
+    steps/compute_cmvn_stats.sh data/$lang/$x \
                                 exp/$lang/mfcc/log/cmvn_stats \
-                                exp/$lang/mfcc/$i || exit 1;
+                                exp/$lang/mfcc/$x || exit 1;
     
-    utils/validate_data_dir.sh data/$lang/$i || utils/fix_data_dir.sh data/$lang/$i || exit 1;
+    utils/validate_data_dir.sh data/$lang/$x || utils/fix_data_dir.sh data/$lang/$x || exit 1;
   done
 fi
 

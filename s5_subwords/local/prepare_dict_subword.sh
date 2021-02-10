@@ -11,6 +11,7 @@ if [ $# -ne 3 ]; then
     exit 1
 fi
 
+
 subword_lexicon_file=$1
 training=$2
 dir=$3
