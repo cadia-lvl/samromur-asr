@@ -13,3 +13,6 @@ jobs:
       uses: ludeeus/action-shellcheck@master
       with:
         severity: error
+        ignore: path.sh cmd.sh
+      env:
+        SHELLCHECK_OPTS: -x -e SC2086 -e SC1091 -e SC1090

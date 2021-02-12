@@ -46,7 +46,7 @@ common_egs_dir=
 
 affix=
 # End configuration section.
-echo "$0 $@"  # Print the command line for logging
+echo "$0 $*"  # Print the command line for logging
 
 . ./cmd.sh
 . ./path.sh
@@ -81,8 +81,8 @@ lang=data/lang_chain_2y
 # if we are using the speed-perturbed data we need to generate
 # alignments for it.
 local/nnet3/run_ivector_common.sh --stage $stage \
-  --speed-perturb $speed_perturb \
-  --generate-alignments $speed_perturb || exit 1;
+--speed-perturb $speed_perturb \
+--generate-alignments $speed_perturb || exit 1;
 
 
 if [ $stage -le 9 ]; then
@@ -90,7 +90,7 @@ if [ $stage -le 9 ]; then
   # use the same num-jobs as the alignments
   nj=$(cat exp/tri4_ali_nodup$suffix/num_jobs) || exit 1;
   steps/align_fmllr_lats.sh --nj $nj --cmd "$train_cmd" data/$train_set \
-    data/lang exp/tri4 exp/tri4_lats_nodup$suffix
+  data/lang exp/tri4 exp/tri4_lats_nodup$suffix
   rm exp/tri4_lats_nodup$suffix/fsts.*.gz # save space
 fi
 
@@ -111,17 +111,17 @@ fi
 if [ $stage -le 11 ]; then
   # Build a tree using our new topology.
   steps/nnet3/chain/build_tree.sh --frame-subsampling-factor 3 \
-      --leftmost-questions-truncate $leftmost_questions_truncate \
-      --context-opts "--context-width=2 --central-position=1" \
-      --cmd "$train_cmd" 7000 data/$train_set $lang $ali_dir $treedir
+  --leftmost-questions-truncate $leftmost_questions_truncate \
+  --context-opts "--context-width=2 --central-position=1" \
+  --cmd "$train_cmd" 7000 data/$train_set $lang $ali_dir $treedir
 fi
 
 if [ $stage -le 12 ]; then
   echo "$0: creating neural net configs using the xconfig parser";
-
+  
   num_targets=$(tree-info $treedir/tree |grep num-pdfs|awk '{print $2}')
   learning_rate_factor=$(echo "print (0.5/$xent_regularize)" | python)
-
+  
   mkdir -p $dir/configs
   cat <<EOF > $dir/configs/network.xconfig
   input dim=100 name=ivector
@@ -167,41 +167,41 @@ fi
 if [ $stage -le 13 ]; then
   if [[ $(hostname -f) == *.clsp.jhu.edu ]] && [ ! -d $dir/egs/storage ]; then
     utils/create_split_dir.pl \
-     /export/b0{5,6,7,8}/$USER/kaldi-data/egs/swbd-$(date +'%m_%d_%H_%M')/s5c/$dir/egs/storage $dir/egs/storage
+    /export/b0{5,6,7,8}/$USER/kaldi-data/egs/swbd-$(date +'%m_%d_%H_%M')/s5c/$dir/egs/storage $dir/egs/storage
   fi
-
+  
   steps/nnet3/chain/train.py --stage $train_stage \
-    --cmd "$decode_cmd" \
-    --feat.online-ivector-dir exp/nnet3/ivectors_${train_set} \
-    --feat.cmvn-opts "--norm-means=false --norm-vars=false" \
-    --chain.xent-regularize $xent_regularize \
-    --chain.leaky-hmm-coefficient 0.1 \
-    --chain.l2-regularize 0.00005 \
-    --chain.apply-deriv-weights false \
-    --chain.lm-opts="--num-extra-lm-states=2000" \
-    --trainer.num-chunk-per-minibatch 64 \
-    --trainer.frames-per-iter 1200000 \
-    --trainer.max-param-change 2.0 \
-    --trainer.num-epochs 4 \
-    --trainer.optimization.shrink-value 0.99 \
-    --trainer.optimization.num-jobs-initial 3 \
-    --trainer.optimization.num-jobs-final 16 \
-    --trainer.optimization.initial-effective-lrate 0.001 \
-    --trainer.optimization.final-effective-lrate 0.0001 \
-    --trainer.optimization.momentum 0.0 \
-    --trainer.deriv-truncate-margin 8 \
-    --egs.stage $get_egs_stage \
-    --egs.opts "--frames-overlap-per-eg 0" \
-    --egs.chunk-width $chunk_width \
-    --egs.chunk-left-context $chunk_left_context \
-    --egs.chunk-right-context $chunk_right_context \
-    --trainer.dropout-schedule $dropout_schedule \
-    --egs.dir "$common_egs_dir" \
-    --cleanup.remove-egs $remove_egs \
-    --feat-dir data/${train_set}_hires \
-    --tree-dir $treedir \
-    --lat-dir exp/tri4_lats_nodup$suffix \
-    --dir $dir  || exit 1;
+  --cmd "$decode_cmd" \
+  --feat.online-ivector-dir exp/nnet3/ivectors_${train_set} \
+  --feat.cmvn-opts "--norm-means=false --norm-vars=false" \
+  --chain.xent-regularize $xent_regularize \
+  --chain.leaky-hmm-coefficient 0.1 \
+  --chain.l2-regularize 0.00005 \
+  --chain.apply-deriv-weights false \
+  --chain.lm-opts="--num-extra-lm-states=2000" \
+  --trainer.num-chunk-per-minibatch 64 \
+  --trainer.frames-per-iter 1200000 \
+  --trainer.max-param-change 2.0 \
+  --trainer.num-epochs 4 \
+  --trainer.optimization.shrink-value 0.99 \
+  --trainer.optimization.num-jobs-initial 3 \
+  --trainer.optimization.num-jobs-final 16 \
+  --trainer.optimization.initial-effective-lrate 0.001 \
+  --trainer.optimization.final-effective-lrate 0.0001 \
+  --trainer.optimization.momentum 0.0 \
+  --trainer.deriv-truncate-margin 8 \
+  --egs.stage $get_egs_stage \
+  --egs.opts "--frames-overlap-per-eg 0" \
+  --egs.chunk-width $chunk_width \
+  --egs.chunk-left-context $chunk_left_context \
+  --egs.chunk-right-context $chunk_right_context \
+  --trainer.dropout-schedule $dropout_schedule \
+  --egs.dir "$common_egs_dir" \
+  --cleanup.remove-egs $remove_egs \
+  --feat-dir data/${train_set}_hires \
+  --tree-dir $treedir \
+  --lat-dir exp/tri4_lats_nodup$suffix \
+  --dir $dir  || exit 1;
 fi
 
 if [ $stage -le 14 ]; then
@@ -222,21 +222,21 @@ if [ $stage -le 15 ]; then
     iter_opts=" --iter $decode_iter "
   fi
   for decode_set in train_dev eval2000; do
-      (
-       steps/nnet3/decode.sh --acwt 1.0 --post-decode-acwt 10.0 \
-          --nj 50 --cmd "$decode_cmd" $iter_opts \
-          --extra-left-context $extra_left_context  \
-          --extra-right-context $extra_right_context  \
-          --frames-per-chunk "$frames_per_chunk" \
-          --online-ivector-dir exp/nnet3/ivectors_${decode_set} \
-         $graph_dir data/${decode_set}_hires \
-         $dir/decode_${decode_set}${decode_dir_affix:+_$decode_dir_affix}_${decode_suff} || exit 1;
+    (
+      steps/nnet3/decode.sh --acwt 1.0 --post-decode-acwt 10.0 \
+      --nj 50 --cmd "$decode_cmd" $iter_opts \
+      --extra-left-context $extra_left_context  \
+      --extra-right-context $extra_right_context  \
+      --frames-per-chunk "$frames_per_chunk" \
+      --online-ivector-dir exp/nnet3/ivectors_${decode_set} \
+      $graph_dir data/${decode_set}_hires \
+      $dir/decode_${decode_set}${decode_dir_affix:+_$decode_dir_affix}_${decode_suff} || exit 1;
       if $has_fisher; then
-          steps/lmrescore_const_arpa.sh --cmd "$decode_cmd" \
-            data/lang_sw1_{tg,fsh_fg} data/${decode_set}_hires \
-            $dir/decode_${decode_set}${decode_dir_affix:+_$decode_dir_affix}_sw1_{tg,fsh_fg} || exit 1;
+        steps/lmrescore_const_arpa.sh --cmd "$decode_cmd" \
+        data/lang_sw1_{tg,fsh_fg} data/${decode_set}_hires \
+        $dir/decode_${decode_set}${decode_dir_affix:+_$decode_dir_affix}_sw1_{tg,fsh_fg} || exit 1;
       fi
-      ) &
+    ) &
   done
 fi
 wait;
