@@ -13,5 +13,6 @@ jobs:
       uses: ludeeus/action-shellcheck@master
       with:
         severity: error
+        check_together: 'yes'
       env:
-        SHELLCHECK_OPTS: -x -e SC2086 -e SC1091 -e SC1090
+        SHELLCHECK_OPTS: -x -e SC2086 -e SC1091
