@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 
 # 7n is a kind of factorized TDNN, with skip connections.
 # See: http://www.danielpovey.com/files/2018_interspeech_tdnnf.pdf

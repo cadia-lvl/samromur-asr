@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -10,7 +10,7 @@ generate_alignments=false # Depends on whether we are doing speech perturbations
 speed_perturb=false
 
 . ./cmd.sh
-. ./path.sh # runs conf/path.conf
+. ./path.sh
 . ./utils/parse_options.sh
 
 if [ ! $# = 4 ]; then
