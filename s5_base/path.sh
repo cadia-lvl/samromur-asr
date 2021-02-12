@@ -1,4 +1,4 @@
-# TODO: load kenlm module or make sure it's in kaldi/tools path
+#!/usr/bin/env bash
 module load kenlm
 
 # Defining Kaldi root directory
