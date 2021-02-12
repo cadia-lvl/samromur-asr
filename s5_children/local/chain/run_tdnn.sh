@@ -40,7 +40,7 @@ echo "$0 $*"  # Print the command line for logging
 # LMs
 decoding_lang=data/lang_3g
 rescoring_lang=data/lang_4g
-#zerogramLM=data/lang_zg
+zerogramLM=data/lang_zg
 langdir=data/lang
 
 if [ ! $# = 2 ]; then
@@ -308,23 +308,14 @@ fi
 
 if [ $calculate_bias = true ]; then
   echo "Calculate the bias by decoding a subset of the training set"
-  rm $dir/.error_bias 2>/dev/null || true
-  for decode_set in train-dev; do
-    (
-      num_jobs=`cat data/${decode_set}_hires/utt2spk|cut -d' ' -f2|sort -u|wc -l`
-      steps/nnet3/decode.sh \
-      --acwt 1.0 --post-decode-acwt 10.0 \
-      --nj $num_jobs --cmd "$decode_cmd --time 0-06" $iter_opts \
-      --online-ivector-dir exp/nnet3/ivectors_${decode_set} \
-      $graph_dir data/${decode_set}_hires \
-      $dir/decode_${decode_set}${decode_iter:+_$decode_iter}_3g || exit 1;
-    ) || touch $dir/.error_bias &
-  done
+  num_jobs=`cat data/train-dev_hires/utt2spk|cut -d' ' -f2|sort -u|wc -l`
+  steps/nnet3/decode.sh \
+  --acwt 1.0 --post-decode-acwt 10.0 \
+  --nj $num_jobs --cmd "$decode_cmd --time 0-06" $iter_opts \
+  --online-ivector-dir exp/nnet3/ivectors_train-dev \
+  $graph_dir data/train-dev_hires \
+  $dir/decode_train-dev${decode_iter:+_$decode_iter}_3g || exit 1;
   wait
-  if [ -f $dir/.error ]; then
-    echo "$0: something went wrong in the train-dev decoding"
-    exit 1
-  fi
 fi
 
 exit 0;

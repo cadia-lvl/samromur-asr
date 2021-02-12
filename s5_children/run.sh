@@ -339,7 +339,7 @@ if [ $stage -le 14 ]; then
   # I want to --generate-plots true --zerogram-decoding true \
   
   # WER info:
-  for x in exp/chain/tdnn${affix}/decode*; do [ -d $x ] && grep WER $x/wer_* | utils/best_wer.sh; done >> RESULTS
+  for x in exp/chain/tdnn"$affix"/decode*; do [ -d "$x" ] && grep WER "$x"/wer_* | utils/best_wer.sh; done >> RESULTS
   
 fi
 
