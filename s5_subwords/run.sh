@@ -9,13 +9,16 @@
 #                                   David Erik Mollberg
 
 #SBATCH --mem=12G
-#SBATCH --output=logs/subset_bpe_does_this_work.log
+#SBATCH --output=logs/subest_baseline_unigram.log
 
 # set -e - Stop the script if any component returns non-zero
 # set -u - Stop the script if any variables are unbound
 # set -x - Extreme debug mode
 # set -o pipefail - Stop the script if something in a pipeline fail
 set -exo pipefail
+
+# standardizes all the sort algorithms 
+export LC_ALL=C
 
 
 num_jobs=20
@@ -25,24 +28,14 @@ stage=0
 create_mfcc=true
 train_mono=true
 
-lang="bpe_improvement_test"
-method='bpe'
+lang="subest_baseline_unigram"
+method='unigram'
 sw_count=1000
+
 
 . utils/parse_options.sh || exit 1;
 . path.sh
 . cmd.sh 
-
-#rm -r data/$lang/
-#rm -r exp/$lang
-
-#0_sb_mal_bpe_just_transcripts: subword, malrómur, Byte pair encoding, just transcripts
-#1_sb_mal_bpe_althingi: subword, malrómur, byte pair encoding,  LMtext.althingi.txt 
-#2_sb_mal_bpe_althingi: subword, malrómur, byte pair encoding,  LMtext.althingi.txt  Had some bugs in 
-#the first run. Mostlikely beacouse I was cleaning up he run script while it was running
-#3_sb_mal_bpe_rmh: subword, málrómur, bpe, rmh text 
-#3_sb_mal_bpe_rmh_V2: subword, málrómur, bpe, rmh text  - Second try as the first run might have had a bug in th LM step
-
 
 # Audio data paths 
 AUDIO=/data/asr/malromur/malromur2017/correct
@@ -54,9 +47,6 @@ METADATA=/home/derik/work/tools/normalize/malromur/normalized_files/malromur_met
 # Text corpus for the LM
 text_corpus=/data/asr/malromur/malromur2017/malromur_corpus.txt
 
-# Todo add dependency check 
-# E.g. check whether srilm is installed and the directory and two 
-# files are ok. But not necessary since instructions in readme tell the user to install it.
 
 if [ $stage -le 0 ]; then
 echo ============================================================================
@@ -67,13 +57,18 @@ echo ===========================================================================
                                  --lang $lang 
 fi
 
-
 if [ $stage -le 1 ]; then
 echo ============================================================================
 echo "               Create $method model and preparing text files         "
 echo ============================================================================
+  # The steps in the is section are the same for all three methods. First we learm to create subwords from 
+  # a given text corpus then we apply that model to text files in data/$lang/[train|test|eval].
   # We store the models/segmentation pair codes for the different subwords methods 
-  # in data/$lang/sw. Where sw stands for subwords.
+  # in data/$lang/sw. Where sw stands for subwords. Next we create the lexicon by finding
+  # all the diffrent subwords create when we tokenize the train/text file. These step have 
+  # their own script depending on method choosen. Next we prepare the lexicon and the rest of
+  # contentes in the dict and lang folders. 
+
   subword_dir=data/$lang/sw
   mkdir -p $subword_dir
 
@@ -84,55 +79,86 @@ echo ===========================================================================
     
     # Using the pair_codes we subword tokenize the kaldi format text files
     for x in train test eval; do
+      #echo "$0: Applying BPE to $x"
       ./local/sw_methods/bpe/prepare_subword_text.sh data/$lang/${x}/text \
                                                      $subword_dir/pair_codes \
-                                                     data/$lang/${x}/text 
+                                                     data/$lang/${x}/text \
+                                                     || error "Failed applying BPE"                                                     
     done
+    
+    # Tokenize the text corpus that will be used for language model training
+    python3 local/sw_methods/bpe/apply_bpe.py -i $text_corpus \
+                                              --codes $subword_dir/pair_codes \
+                                              > $subword_dir/text_corpus
 
     # We again subword tokenize to create a subword lexicon
-    python3 local/sw_methods/bpe/apply_bpe.py -i data/$lang/train/tokens \
-                                              --codes $subword_dir/pair_codes \
-                                              | sed 's/ /\n/g' | sort -u > $subword_dir/subwords
+    #python3 local/sw_methods/bpe/apply_bpe.py -i data/$lang/train/tokens \
+    #                                          --codes $subword_dir/pair_codes \
+    #                                          | sed 's/ /\n/g' | sort -u > $subword_dir/subwords
+  
+    elif [[ $method == 'unigram' || $method == 'sp_bpe' ]]; then
     
-  elif [[ $method == 'unigram' || $method == 'sp_bpe' ]]; then
-    echo "To be done"
+    model=$subword_dir/unigram_${sw_count}
+
+    # Form a given text corpus we learn to create subwords we store the "model" as in $model
+    python3 local/sw_methods/sp/train_sp.py -i $text_corpus \
+                                            -o $model \
+                                            -v $sw_count \
+                                            -t $method \
+                                            || error "Failed training a ${method} model"
+
+    # Using the model we subword tokenize the kaldi format text files
+    for x in train test ; do
+      cp data/$lang/$x/text data/$lang/$x/text.old
+      python3 local/sw_methods/sp/apply_sp.py -m $model \
+                                              -t $method \
+                                              --kaldi_text "True" \
+                                              -i data/$lang/$x/text.old > data/$lang/$x/text \
+                                              || error "Failed applying the ${method} model"
+    done 
+    python3 local/sw_methods/sp/apply_sp.py -m $model \
+                                            -t $method \
+                                            -i $text_corpus \
+                                             > $subword_dir/text_corpus
+
+    # Note: What text file should we use here, if we use the text_corpus the subword lexicon 
+    # might increase.  
+    #cp $subword_dir/text_corpus $subword_dir/text_corpus_plus_text
+    #cut -d" " -f2- data/$lang/train/text >> $subword_dir/text_corpus_plus_text
+    #cut -d" " -f2- data/$lang/train/text | sed 's/ /\n/g' | LC_ALL=C sort -u | grep -v '^[[:space:]]*$' > $subword_dir/subwords 
+    #cut -d" " -f2- $subword_dir/text_corpus | sed 's/ /\n/g' | sort -u | grep -v '^[[:space:]]*$' > $subword_dir/subwords 
+
   elif [[ $method == 'morfessor' ]]; then
     echo "To be done"
   fi 
-  # The following scripts should be run independant of which subword method is chosen
+  
+  #cut -d" " -f2- data/$lang/train/text | sed 's/ /\n/g' | grep -v '^[[:space:]]*$' | sort -u > $subword_dir/subwords 
 
-  echo "$0: Preparing lexicon"
-  python3 local/prepare_lexicon.py --i $subword_dir/subwords \
-                                   --o $subword_dir/subword_lexicon \
-                                   --is_subword True
+  # The following scripts should be run independant of which subword method is choosen
+  #echo "$0: Preparing lexicon"
+  #python3 local/prepare_lexicon.py --i $subword_dir/subwords \
+  #                                 --o $subword_dir/subword_lexicon \
+  #                                 --is_subword True
 
   echo "$0: Preparing lexicon, dict folder and lang folder" 
-  local/prepare_dict_subword.sh $subword_dir/subword_lexicon \
-                                data/$lang/train \
-                                data/$lang/local/dict
+
+  cut -d" " -f2- data/$lang/train/text >> $subword_dir/text_corpus
+  local/prepare_dict_subwordV2.sh $subword_dir/text_corpus \
+                                  $subword_dir \
+                                  data/$lang/local/dict \
+                                  || error "Failed preparing lang"
 
   utils/subword/prepare_lang_subword.sh data/$lang/local/dict \
-                                        "<UNK>"\
+                                        "<UNK>" \
                                         data/$lang/local/lang \
-                                        data/$lang/lang
+                                        data/$lang/lang \
+                                        || error "Failed preparing lang"
 fi
 
 if [ $stage -le 2 ]; then
 echo ============================================================================
 echo "                		Prepare LM with subword text files with $method          "
 echo ============================================================================
-
-  echo "Applying $method to $text_corpus"
-  if [[ $method == 'bpe' ]]; then
-    python3 local/sw_methods/bpe/apply_bpe.py -i $text_corpus \
-                                              --codes $subword_dir/pair_codes \
-                                              > $subword_dir/text_corpus
-
-  elif [[ $method == 'unigram' || $method == 'sp_bpe' ]]; then
-    
-  elif [[ $method == 'morfessor' ]]; then
-    echo "To be done"
-  fi 
 
   local/lm/prepare_lm_subword.sh $subword_dir/text_corpus \
                               data/$lang/test/text \
@@ -155,13 +181,13 @@ echo ===========================================================================
                        --nj $num_jobs \
                        data/$lang/$x \
                        exp/$lang/mfcc/log/make_mfcc \
-                       exp/$lang/mfcc/$x || error 1 "Failed creating MFCC features";
+                       exp/$lang/mfcc/$x || error "Failed creating MFCC features"
 
     steps/compute_cmvn_stats.sh data/$lang/$x \
                                 exp/$lang/mfcc/log/cmvn_stats \
                                 exp/$lang/mfcc/$x || exit 1;
     
-    utils/validate_data_dir.sh data/$lang/$x || utils/fix_data_dir.sh data/$lang/$x || exit 1;
+    utils/validate_data_dir.sh data/$lang/$x || utils/fix_data_dir.sh data/$lang/$x || error "Failed"
   done
 fi
 
@@ -171,13 +197,13 @@ echo "          Train mono system                                               
 echo ============================================================================
   utils/subset_data_dir.sh data/$lang/train \
                            10000 \
-                           data/$lang/train.10K || exit 1;
+                           data/$lang/train.10K || error "Failed"
 
   steps/train_mono.sh --nj $num_jobs \
                       --cmd "$train_cmd" \
                       data/$lang/train.10K \
                       data/$lang/lang \
-                      exp/$lang/mono || exit 1;
+                      exp/$lang/mono || error "Failed"
 fi
 
 if [ $stage -le 5 ]; then

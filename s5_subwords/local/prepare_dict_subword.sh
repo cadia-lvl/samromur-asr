@@ -11,7 +11,6 @@ if [ $# -ne 3 ]; then
     exit 1
 fi
 
-
 subword_lexicon_file=$1
 training=$2
 dir=$3
@@ -31,13 +30,12 @@ if [ $stage -le 0 ]; then
   cat $training/text | cut -d ' ' -f 2- | tr -s " " "\n" | sort -u >> $dir/grapheme_lexicon
 fi
 
-if [ $stage -le 1 ]; then
+if [ $stage -le 0 ]; then
   echo "$0: processing lexicon text and creating lexicon... $(date)."
   python3 local/prepare_lexicon.py --i $dir/grapheme_lexicon --o $dir/lexicon.txt
 fi
 
-cut -d' ' -f2- $dir/lexicon.txt | sed 's/SIL//g' | tr ' ' '\n' | sort -u | sed '/^$/d' > $dir/nonsilence_phones.txt || exit 1;
-
+cut -d' ' -f2- $dir/lexicon.txt | sed 's/SIL//g' | tr ' ' '\n' | sort -u | sed '/^$/d' >$dir/nonsilence_phones.txt || exit 1;
 # modified from original:
 # cut -d' ' -f2- $dir/lexicon.txt | tr ' ' '\n' | LC_ALL=C sort -u | sed '/^$/d' > $dir/nonsilence_phones.txt
 
@@ -48,7 +46,7 @@ echo -n "" >$dir/extra_questions.txt
 
 glossaries="<UNK> <sil>"
 
-if [ $stage -le 3 ]; then
+if [ $stage -le 0 ]; then
   mv $dir/lexicon.txt $dir/lexicon_word.txt
   cut -d ' ' -f1 $dir/lexicon_word.txt > $dir/words.txt
   cat $subword_lexicon_file | sort -u > $dir/lexicon.txt 
