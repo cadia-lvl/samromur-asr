@@ -5,9 +5,11 @@
 # (make sure your --num-jobs options are no more than
 # the number of cpus on your machine.
 
+
+
 # run with slurm:
 export train_cmd="utils/slurm.pl"
-export decode_cmd="utils/slurm.pl --mem 8G"
+export decode_cmd="utils/slurm.pl --mem 30G"
 export mkgraph_cmd="utils/slurm.pl --mem 4G"
 export big_memory_cmd="utils/slurm.pl --mem 8G"
 export cuda_cmd="utils/slurm.pl --gpu 1"

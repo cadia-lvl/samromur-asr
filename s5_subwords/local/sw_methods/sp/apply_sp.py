@@ -1,7 +1,7 @@
 import sentencepiece as spm
 import re   
 import argparse
-
+import sys
 
 def parse(i_path:str, model, kaldi_text=True):
     with open(i_path) as f_in:
@@ -34,16 +34,26 @@ def parse(i_path:str, model, kaldi_text=True):
                         parsed += ' ▁' + tok 
                     else:
                         # Nothing should end here
-                        print('Error in apply_sp_bpe.py this should not be here')
-                        print(tok)
-
+                        sys.exit('Error in apply_sp_bpe.py this should not be here\n'+ tok)
 
                 except StopIteration:
                     break
 
             # Lets change the format of the separtor
             parsed = re.sub(' ▁', '@@ ', parsed.strip())
+
+            # Unigram can add subword token to the end of the line. This happens for some reason to sentences like:
+            # midi punktur is -> m@@ i@@ di punktur is@@ 
+            # We fix that with simple regex as a sentence should never end with a subword.
+            # midi punktur is -> m@@ i@@ di punktur is@@ -> m@@ i@@ di punktur is  
+            # This can perhaps cause an errror down the line if the ending "is" is not in the vocabulary.
+            # But what I think is happining is that both "is@@" and "is" are in the vocab and "is@@" is just
+            # wrongly added their, meaning this would only happen if both are already in the vocab and should
+            # not be an issue durinng training. But during inference on unseen text this could be an issue as 
+            # we might create a new token if the token without the subword seperator sign dosen't exsit. 
+  
             parsed = re.sub('@@\s+$', '', parsed)
+
             if kaldi_text:
                 print(id + ' ' + parsed)
             else:

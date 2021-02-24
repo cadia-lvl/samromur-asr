@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#!/usr/bin/env python3
 
 # Copyright 2017 QCRI (author: Ahmed Ali)
 #           2019 Dongji Gao

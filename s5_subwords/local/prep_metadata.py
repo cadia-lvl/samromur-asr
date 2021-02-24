@@ -1,3 +1,7 @@
+# Author David Erik Mollberg davidemollberg@gmail.com
+# Apache 2.0
+
+
 import sys
 from os.path import exists, join
 from os import makedirs, getcwd
