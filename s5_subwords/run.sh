@@ -129,10 +129,6 @@ echo ===========================================================================
 
     # Note: What text file should we use here, if we use the text_corpus the subword lexicon 
     # might increase.  
-    #cp $subword_dir/text_corpus $subword_dir/text_corpus_plus_text
-    #cut -d" " -f2- data/$lang/train/text >> $subword_dir/text_corpus_plus_text
-    #cut -d" " -f2- data/$lang/train/text | sed 's/ /\n/g' | LC_ALL=C sort -u | grep -v '^[[:space:]]*$' > $subword_dir/subwords 
-    #cut -d" " -f2- $subword_dir/text_corpus | sed 's/ /\n/g' | sort -u | grep -v '^[[:space:]]*$' > $subword_dir/subwords 
 
   elif [[ $method == 'morfessor' ]]; then
     # This step is not fully complete, I had to setup morfessor in 
@@ -157,14 +153,6 @@ echo ===========================================================================
                                                 $subword_dir/text_corpus 
   fi 
   
-  #cut -d" " -f2- data/$lang/train/text | sed 's/ /\n/g' | grep -v '^[[:space:]]*$' | sort -u > $subword_dir/subwords 
-
-  # The following scripts should be run independant of which subword method is choosen
-  #echo "$0: Preparing lexicon"
-  #python3 local/prepare_lexicon.py --i $subword_dir/subwords \
-  #                                 --o $subword_dir/subword_lexicon \
-  #                                 --is_subword True
-
   echo "$0: Preparing lexicon, dict folder and lang folder" 
 
   cut -d" " -f2- data/$lang/train/text >> $subword_dir/text_corpus
