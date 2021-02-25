@@ -3,7 +3,7 @@
 # Copyright      2018  Ashish Arora
 # Apache 2.0     2020  David Erik Mollberg
 
-# This script prepares lexicon.
+# This script prepares grapheme lexicons.
 
 import argparse
 import os
@@ -22,22 +22,13 @@ parser.add_argument('--is_subword', type=boolean_string, default=True, help='Set
 
 args = parser.parse_args()
 
-
 ### main ###
-lex = {}
-text_path = os.path.join(args.i)
-with open(text_path, 'r', encoding='utf-8') as f:
-    for line in f:
-        line = line.strip()
-        characters = list(line)
-        characters = " ".join(['V' if char == '*' else char for char in characters])
-        if args.is_subword:
-            characters = re.sub('@', '', characters)
-        lex[line] = characters
-
-with open(os.path.join(args.o), 'w', encoding='utf-8') as fp:
-    for key, value in lex.items():
-        if args.is_subword:
-            fp.write(key+' '+value+ "\n")
-        else:
-            fp.write(key + "  " + " ".join(['V' if char == '*' else char for char in list(key)]) + "\n")
+with open(os.path.join(args.i), 'r', encoding='utf-8') as f:
+    with open(os.path.join(args.o), 'w', encoding='utf-8') as fp:
+        for line in f:
+            line = line.strip()
+            characters = list(line)
+            characters = " ".join([char for char in characters])
+            if args.is_subword:
+                characters = re.sub('@', '', characters).rstrip()
+            fp.write(line + ' ' + characters + "\n")

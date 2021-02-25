@@ -1,3 +1,7 @@
+# Author David Erik Mollberg davidemollberg@gmail.com
+# Apache 2.0
+
+
 import sys
 from os.path import exists, join
 from os import makedirs, getcwd
@@ -12,7 +16,6 @@ def sort_and_write(datadir:str, data:list):
     '''
     with open(datadir, 'w') as f_out:
         for line in data:
-
             f_out.write(line) 
 
 
@@ -40,7 +43,6 @@ def append_to_file(i, text, wavscp, utt2spk, spk2gender):
     spk2gender.append(f"{f[2]} {gender}\n")
 
 def clean_dir(datadir):
-    print(os.getcwd())
     subprocess.call(f"utils/utt2spk_to_spk2utt.pl < {datadir}/utt2spk > {datadir}/spk2utt", shell=True)
     subprocess.call(f"utils/validate_data_dir.sh --no-feats {datadir} || utils/fix_data_dir.sh {datadir}", shell=True)
 
@@ -63,7 +65,7 @@ if __name__ == "__main__":
                             has to be true when using Samrómur but false when using Malrómur")
     args = parser.parse_args()
 
-    for data_file in ['all','training', 'test', 'eval']:
+    for data_file in ['train', 'test', 'eval']:
         datadir = join(getcwd(),'data', args.lang, data_file)
         print(f'Creating files in {datadir}')
 
@@ -73,7 +75,7 @@ if __name__ == "__main__":
             f_in.readline()
             for line in f_in:
                 f = line.split('\t')
-                if data_file =='training' and f[10] == 'training':
+                if data_file =='train' and f[10] == 'training':
                     append_to_file(f, text, wavscp, utt2spk, spk2gender)
                 elif data_file == 'test' and f[10] == 'test':
                     append_to_file(f, text, wavscp, utt2spk, spk2gender)    

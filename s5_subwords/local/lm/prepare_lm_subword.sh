@@ -45,7 +45,6 @@ if [ -z $loc ]; then
   fi
 fi
 
-#cat $training_corpus | cut -d " " -f 2- >  $dir/text.txt
 cat $test | cut -d ' ' -f2- > $dir/dev.txt
 cut -d' ' -f1 $lexicon > $dir/wordlist
 
