@@ -182,7 +182,7 @@ echo ===========================================================================
     utils/format_lm.sh  data/$lang/lang \
                         data/$lang/local/lm/lm.gz \
                         data/$lang/local/dict/lexicon.txt \
-                        data/$lang/lang_test
+                        data/$lang/lang_${lm_order}g
     
   elif [ $lm_tool == 'kenlm' ]; then
   
@@ -195,7 +195,7 @@ echo ===========================================================================
                $subword_dir/text_corpus \
                data/$lang/lang \
                data/$lang/local/dict/lexicon.txt \
-               data/$lang/local/prune_test \
+               data/$lang/local/ \
                || error 1 "Failed creating an unpruned ${lm_order}g LM";
 
     echo "Done creating an ${lm_order}g. The log is available logs/make_LM_${lm_order}g.log"
@@ -323,10 +323,10 @@ if [ $stage -le 8 ] && $decode_gmm; then
   # Should I add this to decode??
   #  --config conf/decode.config
   steps/decode_fmllr.sh --nj $num_decode_jobs \
-                      --cmd "$decode_cmd" \
-                      exp/$lang/$tri/graph_${lm_tool} \
-                      data/$lang/test \
-                      exp/$lang/$tri/decode_${lm_tool} || exit 1;
+                        --cmd "$decode_cmd" \
+                        exp/$lang/$tri/graph_${lm_tool} \
+                        data/$lang/test \
+                        exp/$lang/$tri/decode_${lm_tool} || exit 1;
 fi
 
 echo "$0: training succeeded"
