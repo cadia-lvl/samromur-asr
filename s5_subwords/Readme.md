@@ -9,7 +9,7 @@ To do...
 
 
 ### Subword methods
-We provide scripts for three subwords methods. We modified gthe ale-arbic Byte Pair endcoding recipe in the Kaldi repository for one of the BPE implementations and used Google’s SentencePiece (SP) library for the other BPE implementation (SP_BPE) and the Unigram algorithm. We also have the package Morfessor. 
+We provide scripts for three subwords methods. We modified gale-arbic Byte Pair endcoding recipe in the Kaldi repository for one of the BPE implementations and used Google’s SentencePiece (SP) library for the other BPE implementation (SP_BPE) and the Unigram algorithm. We also have the package Morfessor. 
 
 ```
 local
@@ -20,7 +20,7 @@ local
 ```
 
 ### Dependacies (other than Kaldi)
-For Kaldi installtion help refer to ../documentation/setup_kaldi.md
+For Kaldi installation help refer to ../documentation/setup_kaldi.md
 
 * Python 3.x
 

@@ -51,6 +51,7 @@ if __name__ == "__main__":
                                 model_prefix=args.output, \
                                 vocab_size=args.vocab_size, \
                                 model_type=model, \
+                                input_sentence_size = 4000000, \
                                 normalization_rule_name='identity', \
                                 max_sentencepiece_length=32, \
                                 train_extremely_large_corpus=args.larger_corpus) #Increase bit depth for unigram tokenization

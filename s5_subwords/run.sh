@@ -23,12 +23,12 @@ decode_gmm=true
 stage=0
 create_mfcc=true
 train_mono=true
-lm_tool='kenlm'
 lm_order=6
-lang="morfessor"
+lm_tool='kenlm'
+lang=""
 method='bpe'
-sw_count=1000
-corpora="samromur"
+sw_count=8000
+corpora="malromur"
 
 . utils/parse_options.sh || exit 1;
 . path.sh
@@ -42,9 +42,8 @@ METADATA=/data/asr/malromur/malromur2017/malromur_metadata.tsv
 #METADATA=/home/derik/work/tools/normalize/malromur/normalized_files/malromur_metadata_subset.tsv # A small subest of the corpus, used for fast testing.
 
 # Text corpus for the LM
-text_corpus=/data/asr/malromur/malromur2017/malromur_corpus.txt
-#text_corpus=/work/derik/language_models/LM_corpus/rmh_test
-
+#text_corpus=/data/asr/malromur/malromur2017/malromur_corpus.txt
+text_corpus=/work/derik/language_models/LM_corpus/rmh_test
 
 # Todo: Sanity check
 
@@ -54,8 +53,8 @@ echo "                		Data Prep			                "
 echo ============================================================================
   if [ $corpora == 'malromur' ]; then
     python3 local/prep_metadata.py --audio $AUDIO \
-                                  --metadata $METADATA \
-                                  --lang $lang 
+                                   --metadata $METADATA \
+                                   --lang $lang 
   fi
 fi
 
@@ -77,9 +76,9 @@ echo ===========================================================================
     # Form a given text corpus we learn to create subwords we store the "model" as pair_codes
     # Note: Maybe we should be using the transcripts to learn the pair codes because that will
     # make up the words that we try to model.
-    transcripts=/data/asr/malromur/malromur2017/malromur_corpus.txt
+    #transcripts=/data/asr/malromur/malromur2017/malromur_corpus.txt
 
-    python3 local/sw_methods/bpe/learn_bpe.py -i $transcripts \
+    python3 local/sw_methods/bpe/learn_bpe.py -i $text_corpus \
                                               -s $sw_count > $subword_dir/pair_codes
     
     # Using the pair_codes we subword tokenize the kaldi format text files
@@ -105,7 +104,7 @@ echo ===========================================================================
 
     model=$subword_dir/unigram_${sw_count}
 
-    # Form a given text corpus we learn to create subwords we store the "model" as in $model
+    # Using the text corpus create the subword "model" and store it as $model
     python3 local/sw_methods/sp/train_sp.py -i $text_corpus \
                                             -o $model \
                                             -v $sw_count \
@@ -156,7 +155,7 @@ echo ===========================================================================
   echo "$0: Preparing lexicon, dict folder and lang folder" 
 
   cut -d" " -f2- data/$lang/train/text >> $subword_dir/text_corpus
-  local/prepare_dict_subwordV2.sh $subword_dir/text_corpus \
+  local/prepare_dict_subword.sh $subword_dir/text_corpus \
                                   $subword_dir \
                                   data/$lang/local/dict \
                                   || error "Failed preparing lang"
@@ -191,7 +190,7 @@ echo ===========================================================================
     $train_cmd --mem 20G "logs/make_LM_${lm_order}g_prune_test.log" \
                local/lm/make_LM.sh \
                --order $lm_order \
-               --pruning "2 4 6 8 10 12" \
+               --pruning "4 6 8 10 12 14" \
                --carpa false \
                $subword_dir/text_corpus \
                data/$lang/lang \
@@ -330,5 +329,5 @@ if [ $stage -le 8 ] && $decode_gmm; then
                       exp/$lang/$tri/decode_${lm_tool} || exit 1;
 fi
 
-echo "$0: training succeed"
+echo "$0: training succeeded"
 exit 0
