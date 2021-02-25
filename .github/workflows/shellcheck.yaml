@@ -1,0 +1,18 @@
+on:
+  push:
+
+name: 'Trigger: Push action'
+
+jobs:
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run ShellCheck
+      uses: ludeeus/action-shellcheck@master
+      with:
+        severity: error
+        check_together: 'yes'
+      env:
+        SHELLCHECK_OPTS: -x -e SC2086 -e SC1091
