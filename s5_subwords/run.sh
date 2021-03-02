@@ -357,7 +357,8 @@ if [ $stage -le 8 ]; then
   # WER info:
   for x in exp/$code/*/decode_{test,dev}_rescored; do
     [ -d "$x" ] && grep WER "$x"/wer_* | utils/best_wer.sh;
-  done > RESULTS
+
+  done >> results/RESULTS_${code}
 fi
 
 
@@ -370,7 +371,7 @@ if [ $stage -le 9 ] && $tdnn; then
                             --decoding-lang $decode_lm \
                             --rescoring-lang $rescore_lm \
                             --langdir data/$code/lang \
-                            --gmm $code/tri3b \
+                            --gmm /tri3b \
                             data/$code/train \
                             data/$code/ \
                             $code \
@@ -381,7 +382,7 @@ if [ $stage -le 9 ] && $tdnn; then
     
       [ -d $x ] && grep WER $x/wer_* | utils/best_wer.sh; 
     
-    done >> RESULTS
+    done >> results/RESULTS_${code}
     
 fi
 

@@ -44,6 +44,7 @@ train_set=$(basename $inputdata)
 gmm_dir=exp/$code/${gmm}
 ali_dir=exp/$code/${gmm}_ali_${train_set}$suffix
 
+mfccdir=exp/$code/mfcc
 
 if [ "$speed_perturb" == "true" ]; then
   if [ $stage -le 1 ]; then
@@ -88,9 +89,9 @@ if [ $stage -le 3 ]; then
   --nj 100 --mfcc-config conf/mfcc_hires.conf \
   --cmd "$decode_cmd --time 2-00" \
   data/$code/${train_set}_hires \
-  exp/$code/make_hires/$train_set mfcc;
+  exp/$code/make_hires/$train_set $mfccdir;
   
-  steps/compute_cmvn_stats.sh data/$code/${train_set}_hires exp/$code/make_hires/${train_set} mfcc;
+  steps/compute_cmvn_stats.sh data/$code/${train_set}_hires exp/$code/make_hires/${train_set} $mfccdir;
   
   # Remove the small number of utterances that couldn't be extracted for some
   # reason (e.g. too short; no such file).
@@ -100,8 +101,8 @@ if [ $stage -le 3 ]; then
     # Create MFCCs for the dev/eval sets
     utils/copy_data_dir.sh $testdatadir/$dataset data/$code/${dataset}_hires
     steps/make_mfcc.sh --cmd "$train_cmd" --nj 30 --mfcc-config conf/mfcc_hires.conf \
-    data/$code/${dataset}_hires exp/$code/make_hires/$dataset mfcc;
-    steps/compute_cmvn_stats.sh data/$code/${dataset}_hires exp/$code/make_hires/$dataset mfcc;
+    data/$code/${dataset}_hires exp/$code/make_hires/$dataset $mfccdir;
+    steps/compute_cmvn_stats.sh data/$code/${dataset}_hires exp/$code/make_hires/$dataset $mfccdir;
     utils/fix_data_dir.sh data/$code/${dataset}_hires  # remove segments with problems
   done
   
