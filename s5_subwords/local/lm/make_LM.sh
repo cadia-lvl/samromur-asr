@@ -12,7 +12,7 @@ carpa=true
 . ./local/utils.sh
 
 
-if [ $# != 4 ]; then
+if [ $# != 5 ]; then
     echo "This script creates language models"
     echo ""
     echo "Usage: local/make_LM.sh [options] <input-text-file> <lang-dir> <dict-dir> <language-model-dir>"
@@ -34,19 +34,15 @@ lmtext=$1
 lang=$2
 lexicon=$3
 dir=$4
+code=$5
 
 [ ! -d "$lang" ] && echo "$0: expected $lang to exist" && exit 1;
 for f in "$lmtext" "$lexicon"; do \
     [ ! -f $f ] && echo "$0: expected $f to exist" && exit 1;
 done
 
-#if [ ${min1cnt} -eq 0 ]; then
-#    affix=_unpruned
-#else
-#    affix=_${min3cnt}${min2cnt}${min1cnt}pruned
-#fi
 
-affix="$(echo -e "${pruning}" | tr -d '[:space:]')pruned"
+affix="$(echo -e "${pruning}" | tr -d '[:space:]')pruned_${code}"
 
 
 if [ $stage -le 1 ]; then
@@ -58,28 +54,25 @@ if [ $stage -le 1 ]; then
     done
     
     echo "Build ARPA-format language model"
-    lmplz \
-    --skip_symbols \
-    -o ${order} -S 70% \
-    --prune $pruning \
-    --text "$lmtext" \
-    --discount_fallback \
-    --limit_vocab_file <(cut -d' ' -f1 "$dir"/lang_${order}g/words.txt | grep -Ev "<eps>|<unk>") \
-    | gzip -c > "$dir"/lang_${order}g/kenlm_${order}g${affix}.arpa.gz || error 1 "lmplz failed"
+    lmplz --skip_symbols \
+            -o ${order} -S 70% \
+            --prune $pruning \
+            --text "$lmtext" \
+            --discount_fallback \
+            --limit_vocab_file <(cut -d' ' -f1 "$dir"/lang_${order}g/words.txt | grep -Ev "<eps>|<unk>") \
+            | gzip -c > "$dir"/lang_${order}g/kenlm_${order}g${affix}.arpa.gz || error 1 "lmplz failed"
 fi
 
 if [ $stage -le 2 ]; then
     if [ $carpa = true ]; then
         echo "Build constant ARPA language model"
-        utils/build_const_arpa_lm.sh \
-        "$dir"/lang_${order}g/kenlm_${order}g${affix}.arpa.gz \
-        "$lang" "$dir"/lang_${order}g || error 1 "Failed creating a const. ARPA LM"
+        utils/build_const_arpa_lm.sh "$dir"/lang_${order}g/kenlm_${order}g${affix}.arpa.gz \
+                                     "$lang" "$dir"/lang_${order}g || error 1 "Failed creating a const. ARPA LM"
         echo "Succeeded in creating G.carpa"
     else
         echo "Convert ARPA-format language models to FSTs."
-        utils/format_lm.sh \
-        "$lang" "$dir"/lang_${order}g/kenlm_${order}g${affix}.arpa.gz \
-        "$lexicon" "$dir"/lang_${order}g || error 1 "Failed creating G.fst"
+        utils/format_lm.sh "$lang" "$dir"/lang_${order}g/kenlm_${order}g${affix}.arpa.gz \
+                           "$lexicon" "$dir"/lang_${order}g || error 1 "Failed creating G.fst"
         echo "Succeeded in creating G.fst"
     fi
 fi

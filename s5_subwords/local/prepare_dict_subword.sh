@@ -27,8 +27,8 @@ echo "$0: Preparing dictionary"
 #cut -d" " -f2- $text_corpus | sed 's/ /\n/g' | sort -u | sed '/^$/d' > $subword_dir/subwords 
 cat $text_corpus | sed 's/ /\n/g' | sort -u | sed '/^$/d' > $subword_dir/subwords 
 
-python3 local/prepare_lexicon.py --i $subword_dir/subwords \
-                                 --o $subword_dir/subword_lexicon
+./local/prepare_lexicon.py --i $subword_dir/subwords \
+                           --o $subword_dir/subword_lexicon
 
 cut -d' ' -f2- $subword_dir/subword_lexicon | sed 's/SIL//g' | tr ' ' '\n' | sort -u | sed '/^$/d' > $dir/nonsilence_phones.txt || exit 1;
 
