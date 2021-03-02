@@ -1,12 +1,12 @@
+#!/usr/bin/env python3
+
 # Author David Erik Mollberg davidemollberg@gmail.com
 # Apache 2.0
 
 
-import sys
 from os.path import exists, join
 from os import makedirs, getcwd
 import subprocess
-import os
 import argparse
 
 def sort_and_write(datadir:str, data:list):
@@ -23,11 +23,8 @@ def append_to_file(i, text, wavscp, utt2spk, spk2gender):
     '''
     Append relevant data to the lists
     '''
-    if args.create_ids:
-        utt_id=f"{f[2]}-{f[0]}"
-    else:
-        utt_id=f[0]
 
+    utt_id=f[0]
     text.append(f"{utt_id} {f[9]}\n")
     wavscp.append(f"{utt_id} sox - -c1 -esigned -r {f[7]} -twav - < {join(args.audio, f[1])} |\n")
     utt2spk.append(f"{utt_id} {f[2]}\n")
@@ -54,19 +51,17 @@ if __name__ == "__main__":
         The script also makes a tokens file which which contains the lexicon in a the corpus \
         Eg. samromur_prep_data.py /data/corpora/samromur/audio/ metadata.tsv\n")
         
-    parser.add_argument("--audio", required=True, type=str,
+    parser.add_argument("-a","--audio", required=True, type=str,
                         help="Path to audio corpus")
-    parser.add_argument("--metadata", required=True, type=str,
+    parser.add_argument("-m","--metadata", required=True, type=str,
                         help="Path to the metadatafile")
-    parser.add_argument("--lang", required=True, type=str,
+    parser.add_argument("-o","--output_dir", required=True, type=str,
                         help="Use to distinguish between different runs")
-    parser.add_argument("--create_ids", type=bool, default=False,
-                        help="Use to create ids in the Kaldi format, 'speaker_id-id', \
-                            has to be true when using Samrómur but false when using Malrómur")
+                        
     args = parser.parse_args()
 
-    for data_file in ['train', 'test', 'eval']:
-        datadir = join(getcwd(),'data', args.lang, data_file)
+    for data_file in ['train', 'dev', 'test']:
+        datadir = join(args.output_dir, data_file)
         print(f'Creating files in {datadir}')
 
         text, wavscp, utt2spk, spk2gender = [], [], [], []
@@ -77,12 +72,10 @@ if __name__ == "__main__":
                 f = line.split('\t')
                 if data_file =='train' and f[10] == 'training':
                     append_to_file(f, text, wavscp, utt2spk, spk2gender)
-                elif data_file == 'test' and f[10] == 'test':
+                elif data_file == 'dev' and f[10] == 'test':
                     append_to_file(f, text, wavscp, utt2spk, spk2gender)    
-                elif data_file == 'eval' and f[10] == 'eval':
+                elif data_file == 'test' and f[10] == 'test':
                     append_to_file(f, text, wavscp, utt2spk, spk2gender)  
-                elif data_file =='all':
-                    append_to_file(f, text, wavscp, utt2spk, spk2gender)
 
                 for tok in f[9].split(' '):
                     tokens.add(tok.rstrip())
@@ -104,33 +97,3 @@ if __name__ == "__main__":
                         f_out.write(tok+'\n')
 
             clean_dir(datadir)
-
-
-#Pandas becomes impermeable slow if the files increase
-"""   df = pd.read_csv(args.metadata, sep='\t', index_col='id')
-for i in tqdm(df.index):
-    if data_file =='training' and df.at[i, 'status'] == 'training':
-        append_to_file(i, text, wavscp, utt2spk, spk2gender)
-    elif data_file == 'test' and df.at[i, 'status'] == 'test':
-        append_to_file(i, text, wavscp, utt2spk, spk2gender)    
-    elif data_file == 'eval' and df.at[i, 'status'] == 'eval':
-        append_to_file(i, text, wavscp, utt2spk, spk2gender)  
-    elif data_file =='all':
-        append_to_file(i, text, wavscp, utt2spk, spk2gender) """
-
-""" def append_to_file(i, text, wavscp, utt2spk, spk2gender):
-    '''
-    Append relevant data to the lists
-    '''
-    if args.create_ids:
-        utt_id=f"{df.at[i, 'speaker_id']}-{i}"
-    else:
-        utt_id={i}
-
-    text.append(f"{utt_id} {df.at[i, 'sentence_norm']}\n")
-    wavscp.append(f"{utt_id} sox - -c1 -esigned -r {df.at[i, 'sample_rate']} -twav - < {join(args.audio, df.at[i, 'filename'])} |\n")
-    utt2spk.append(f"{utt_id} {df.at[i, 'speaker_id']}\n")
-    
-    #This line will cause an error in versions of Samrómur where the speaker is unknown
-    spk2gender.append(f"{df.at[i, 'speaker_id']} {df.at[i, 'sex'][0]}\n")
- """    
