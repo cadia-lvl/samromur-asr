@@ -13,7 +13,7 @@ separator="@@"
 glossaries=
 # End configuration section
 
-#. utils/parse_options.sh
+. ./utils/parse_options.sh
 
 echo "$0 $@"
 
@@ -33,9 +33,14 @@ subword_text=$3
 
 grep -q $separator $word_text && echo "$0: Error, word text file contains separator $separator. This might be a subword text file or you need to choose a different separator" && exit 1;
 
-glossaries_opt=
-[ -z $glossaires ] && glossaries_opt="--glossaries $glossaries"
-cut -d ' ' -f2- $word_text | python3 local/sw_methods/bpe/apply_bpe.py -c $pair_code --separator $separator $glossaires_opt > ${word_text}.sub
+if [ -z $glossaries ]; then 
+  glossaries_opt=
+else
+  glossaries_opt="--glossaries $glossaries"
+fi
+
+cut -d ' ' -f2- $word_text | python3 local/sw_methods/bpe/apply_bpe.py -c $pair_code --separator $separator $glossaries_opt > ${word_text}.sub
+
 
   if [ $word_text == $subword_text ]; then
     mv $word_text ${word_text}.old

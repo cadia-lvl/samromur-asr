@@ -55,12 +55,12 @@ if [ $stage -le 1 ]; then
     
     echo "Build ARPA-format language model"
     lmplz --skip_symbols \
-            -o ${order} -S 70% \
-            --prune $pruning \
-            --text "$lmtext" \
-            --discount_fallback \
-            --limit_vocab_file <(cut -d' ' -f1 "$dir"/lang_${order}g/words.txt | grep -Ev "<eps>|<unk>") \
-            | gzip -c > "$dir"/lang_${order}g/kenlm_${order}g${affix}.arpa.gz || error 1 "lmplz failed"
+          -o ${order} -S 70% \
+          --prune $pruning \
+          --text "$lmtext" \
+          --discount_fallback \
+          --limit_vocab_file <(cut -d' ' -f1 "$dir"/lang_${order}g/words.txt | grep -Ev "<eps>|<unk>") \
+          | gzip -c > "$dir"/lang_${order}g/kenlm_${order}g${affix}.arpa.gz || error 1 "lmplz failed"
 fi
 
 if [ $stage -le 2 ]; then

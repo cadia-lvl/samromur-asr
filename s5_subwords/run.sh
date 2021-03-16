@@ -17,7 +17,7 @@
 # standardizes all the sort algorithms 
 export LC_ALL=C
 
-num_jobs=50
+num_jobs=10
 num_decode_jobs=30
 stage=0
 lm_order=6
@@ -28,19 +28,7 @@ sw_count=3000
 corpora="sm"
 tdnn=true
 
-create_mfcc=true
-mfcc_dir=exp/$code/mfcc
-
-
-. utils/parse_options.sh || exit 1;
-. path.sh
-. cmd.sh 
-
-# Audio data paths 
-MALROMUR_AUDIO=/data/asr/malromur/malromur2017/correct
-
-#samromur_root=/data/asr/samromur/samromur_ldc
-METADATA=/data/asr/malromur/malromur2017/malromur_metadata.tsv
+create_mfcc=truenum_decode_jobs7/malromur_metadata.tsv
 #METADATA=/home/derik/work/tools/normalize/malromur/normalized_files/malromur_metadata_subset.tsv # A small subest of the corpus, used for fast testing.
 
 # Text corpus for the LM
@@ -338,11 +326,11 @@ if [ $stage -le 8 ]; then
 
   for dir in dev test; do
     (
-    #steps/decode_fmllr.sh --nj $num_decode_jobs \
-    #                      --cmd "$decode_cmd" \
-    #                      exp/$code/$tri/graph \
-    #                      data/$code/$dir \
-    #                      exp/$code/$tri/decode_${dir};
+    steps/decode_fmllr.sh --nj $num_decode_jobs \
+                          --cmd "$decode_cmd" \
+                          exp/$code/$tri/graph \
+                          data/$code/$dir \
+                          exp/$code/$tri/decode_${dir};
 
     steps/lmrescore_const_arpa.sh --cmd "$decode_cmd" \
                                   $decode_lm \
