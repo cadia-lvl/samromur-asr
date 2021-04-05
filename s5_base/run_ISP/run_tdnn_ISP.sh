@@ -42,9 +42,6 @@ exp=exp_ISP
 . ./utils/parse_options.sh || exit 1;
 
 
-
-
-
 if [ ! $# = 2 ]; then
   echo "This script trains a factorized time delay deep neural network"
   echo "and tests the new model on a development set"
@@ -66,7 +63,7 @@ fi
 inputdata=$1
 testdatadir=$2
 
-printf "\nkeyrsla set afstað $(date)\n\n"
+printf "\n Keyrsla set afstað $(date)\n\n"
 
 
 
@@ -154,6 +151,7 @@ if [ $stage -le 11 ]; then
                                   $treedir
 fi
 
+
 if [ $stage -le 12 ]; then
   echo "$0: creating neural net configs using the xconfig parser";
   
@@ -205,13 +203,11 @@ if [ $stage -le 12 ]; then
   output-layer name=output-xent dim=$num_targets learning-rate-factor=$learning_rate_factor $output_opts
 EOF
   steps/nnet3/xconfig_to_configs.py --xconfig-file $dir/configs/network.xconfig --config-dir $dir/configs/
-
 fi
-
 
 if [ $stage -le 13 ]; then
   
-  steps/nnet3/chain/train.py  --stage $train_stage \
+  nohup steps/nnet3/chain/train.py  --stage $train_stage \
                               --use-gpu='wait' \
                               --cmd "$cuda_cmd --time 1-12 --config conf/slurm_terra.conf" \
                               --feat.online-ivector-dir $exp/nnet3/ivectors_${train_set} \
@@ -241,5 +237,4 @@ if [ $stage -le 13 ]; then
   
 fi
 
-echo "Next up! Decode"
 exit 0;

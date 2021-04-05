@@ -1,0 +1,49 @@
+10.47	10h/test_clean_6g/
+7.52	10h/test_clean_8g_rescored/
+9.81	10h/dev_clean_6g/
+6.86	10h/dev_clean_8g_rescored/
+8.80	20h/test_clean_6g/
+6.39	20h/test_clean_8g_rescored/
+8.19	20h/dev_clean_6g/
+5.73	20h/dev_clean_8g_rescored/
+7.74	40h/test_clean_6g/
+5.65	40h/test_clean_8g_rescored/
+7.30	40h/dev_clean_6g/
+5.10	40h/dev_clean_8g_rescored/
+6.98	80h/test_clean_6g/
+5.14	80h/test_clean_8g_rescored/
+6.51	80h/dev_clean_6g/
+4.66	80h/dev_clean_8g_rescored/
+6.20	160h/test_clean_6g/
+4.58	160h/test_clean_8g_rescored/
+5.69	160h/dev_clean_6g/
+4.01	160h/dev_clean_8g_rescored/
+5.87	320h/test_clean_6g/
+4.32	320h/test_clean_8g_rescored/
+5.23	320h/dev_clean_6g/
+3.68	320h/dev_clean_8g_rescored/
+%WER 10.47 [ 5506 / 52576, 514 ins, 877 del, 4115 sub ] exp_ISP/libri/10h/chain/tdnn10h_sp/decode_test_clean_6g/wer_15_0.0
+%WER 7.52 [ 3956 / 52576, 538 ins, 479 del, 2939 sub ] exp_ISP/libri/10h/chain/tdnn10h_sp/decode_test_clean_8g_rescored/wer_15_0.0
+%WER 9.81 [ 5335 / 54402, 492 ins, 789 del, 4054 sub ] exp_ISP/libri/10h/chain/tdnn10h_sp/decode_dev_clean_6g/wer_14_0.0
+%WER 6.86 [ 3734 / 54402, 491 ins, 412 del, 2831 sub ] exp_ISP/libri/10h/chain/tdnn10h_sp/decode_dev_clean_8g_rescored/wer_14_0.0
+%WER 8.80 [ 4628 / 52576, 498 ins, 591 del, 3539 sub ] exp_ISP/libri/20h/chain/tdnn20h_sp/decode_test_clean_6g/wer_13_0.0
+%WER 6.39 [ 3358 / 52576, 495 ins, 344 del, 2519 sub ] exp_ISP/libri/20h/chain/tdnn20h_sp/decode_test_clean_8g_rescored/wer_13_0.0
+%WER 8.19 [ 4455 / 54402, 373 ins, 675 del, 3407 sub ] exp_ISP/libri/20h/chain/tdnn20h_sp/decode_dev_clean_6g/wer_15_0.0
+%WER 5.73 [ 3119 / 54402, 359 ins, 374 del, 2386 sub ] exp_ISP/libri/20h/chain/tdnn20h_sp/decode_dev_clean_8g_rescored/wer_13_0.5
+%WER 7.74 [ 4072 / 52576, 429 ins, 559 del, 3084 sub ] exp_ISP/libri/40h/chain/tdnn40h_sp/decode_test_clean_6g/wer_14_0.0
+%WER 5.65 [ 2969 / 52576, 394 ins, 322 del, 2253 sub ] exp_ISP/libri/40h/chain/tdnn40h_sp/decode_test_clean_8g_rescored/wer_15_0.0
+%WER 7.30 [ 3972 / 54402, 400 ins, 499 del, 3073 sub ] exp_ISP/libri/40h/chain/tdnn40h_sp/decode_dev_clean_6g/wer_13_0.0
+%WER 5.10 [ 2776 / 54402, 355 ins, 275 del, 2146 sub ] exp_ISP/libri/40h/chain/tdnn40h_sp/decode_dev_clean_8g_rescored/wer_14_0.0
+%WER 6.98 [ 3671 / 52576, 341 ins, 508 del, 2822 sub ] exp_ISP/libri/80h/chain/tdnn80h_sp/decode_test_clean_6g/wer_14_0.0
+%WER 5.14 [ 2704 / 52576, 350 ins, 305 del, 2049 sub ] exp_ISP/libri/80h/chain/tdnn80h_sp/decode_test_clean_8g_rescored/wer_14_0.0
+%WER 6.51 [ 3543 / 54402, 355 ins, 427 del, 2761 sub ] exp_ISP/libri/80h/chain/tdnn80h_sp/decode_dev_clean_6g/wer_12_0.0
+%WER 4.66 [ 2535 / 54402, 293 ins, 300 del, 1942 sub ] exp_ISP/libri/80h/chain/tdnn80h_sp/decode_dev_clean_8g_rescored/wer_13_0.5
+%WER 6.20 [ 3259 / 52576, 318 ins, 436 del, 2505 sub ] exp_ISP/libri/160h/chain/tdnn160h_sp/decode_test_clean_6g/wer_13_0.0
+%WER 4.58 [ 2409 / 52576, 297 ins, 276 del, 1836 sub ] exp_ISP/libri/160h/chain/tdnn160h_sp/decode_test_clean_8g_rescored/wer_14_0.0
+%WER 5.69 [ 3095 / 54402, 275 ins, 382 del, 2438 sub ] exp_ISP/libri/160h/chain/tdnn160h_sp/decode_dev_clean_6g/wer_12_0.0
+%WER 4.01 [ 2180 / 54402, 245 ins, 236 del, 1699 sub ] exp_ISP/libri/160h/chain/tdnn160h_sp/decode_dev_clean_8g_rescored/wer_13_0.0
+%WER 5.87 [ 3084 / 52576, 292 ins, 405 del, 2387 sub ] exp_ISP/libri/320h/chain/tdnn320h_sp/decode_test_clean_6g/wer_12_0.0
+%WER 4.32 [ 2271 / 52576, 281 ins, 234 del, 1756 sub ] exp_ISP/libri/320h/chain/tdnn320h_sp/decode_test_clean_8g_rescored/wer_12_0.0
+%WER 5.23 [ 2843 / 54402, 237 ins, 329 del, 2277 sub ] exp_ISP/libri/320h/chain/tdnn320h_sp/decode_dev_clean_6g/wer_11_0.0
+%WER 3.68 [ 2004 / 54402, 219 ins, 192 del, 1593 sub ] exp_ISP/libri/320h/chain/tdnn320h_sp/decode_dev_clean_8g_rescored/wer_11_0.0
+ 

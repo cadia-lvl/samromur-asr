@@ -41,8 +41,8 @@ join -t '' \
 for w in sil oov; do echo $w; done > $dictdir/silence_phones.txt
 echo "sil" > $dictdir/optional_silence.txt
 
-utils/prepare_lang.sh \
-$dictdir "<unk>" data/local/lang $langdir
+utils/prepare_lang.sh $dictdir "<unk>" tmp/lang $langdir
+rm -r tmp/lang
 
 utils/validate_lang.pl $langdir || error "lang dir invalid"
 

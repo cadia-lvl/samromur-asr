@@ -48,18 +48,19 @@ ali_dir=$exp/${gmm}_ali_${train_set}$suffix
 
 mfccdir=$exp/mfcc
 
-if [[ $inputdata == *"_10h"* ]]; then
+if [[ $inputdata == *"10h"* ]]; then
   subset_size=5000
 
-elif [[ $inputdata == *"_20h"* ]]; then
+elif [[ $inputdata == *"20h"* ]]; then
   subset_size=10000
 
-elif [[ $inputdata == *"_40h"* ]]; then
+elif [[ $inputdata == *"40h"* ]]; then
   subset_size=20000 
 
 else    
   subset_size=40000
 fi 
+
 
 
 if [ "$speed_perturb" == "true" ]; then
@@ -73,8 +74,6 @@ if [ "$speed_perturb" == "true" ]; then
     echo "$0: preparing directory for low-resolution speed-perturbed data (for alignment)"
     utils/data/perturb_data_dir_speed_3way.sh $inputdata \
                                               $data/${train_set}${suffix}
-
-
 
     echo "$0: making MFCC features for low-resolution speed-perturbed data"
     steps/make_mfcc.sh --nj 80 \
@@ -144,7 +143,7 @@ if [ $stage -le 3 ]; then
   
   #for data_set in dev_clean test_clean; do
   #  echo "Creating mfcc's for $data_set"
-  #  # Create MFCCs for the dev/eval sets
+    # Create MFCCs for the dev/eval sets
 
   #  utils/copy_data_dir.sh $testdatadir/$data_set data_ISP/libri/${data_set}_hires
     
@@ -161,7 +160,7 @@ if [ $stage -le 3 ]; then
 
   #  utils/validate_data_dir.sh data_ISP/libri/${data_set}_hires || utils/fix_data_dir.sh data_ISP/libri/${data_set}_hires 
   #  echo "Done mfcc's for $data_set"
-  #done
+  # done
   
   # For the isl data. We only run this once
   #for data_set in sm_dev sm_test althingi_dev althingi_test; do
@@ -190,8 +189,8 @@ if [ $stage -le 3 ]; then
                            $subset_size \
                            $data/${train_set}_${subset_size}k_hires
 
-
 fi
+
 
 
 

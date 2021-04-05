@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 
 # Copyright 2014 QCRI (author: Ahmed Ali)
@@ -17,19 +18,16 @@
 # standardizes all the sort algorithms 
 export LC_ALL=C
 
-num_jobs=50
+num_jobs=100
 num_decode_jobs=30
-stage=0
+stage=1100
 lm_order=6
 code=isl
 method='bpe'
 sw_count=3000
 
-#METADATA=/home/derik/work/tools/normalize/malromur/normalized_files/malromur_metadata_subset.tsv # A small subest of the corpus, used for fast testing.
-
-# Text corpus for the LM
-# text_corpus=/data/asr/malromur/malromur2017/malromur_corpus.txt
-#text_corpus=/work/derik/language_models/LM_corpus/rmh_test
+set=
+ts=
 text_corpus=/work/derik/language_models/LM_corpus/rmh_2020-11-23_shuffle+malromur.txt
 
 samromur_root=/data/asr/samromur/samromur_ldc
@@ -43,7 +41,6 @@ data=data_ISP
 exp=exp_ISP
 
 subword_dir=$data/isl_sw_bpe_3000
-mkdir -p $subword_dir
 
 . utils/parse_options.sh || exit 1;
 . path.sh
@@ -78,6 +75,8 @@ if [ $stage -le 0 ]; then
   x=600
   utils/subset_data_dir.sh --speakers $data/$code/train/ 388700 $data/$code/train_${x}h
   cut -d" " -f2 $data/$code/train_${x}h/utt2dur | awk '{s+=$1} END {print s/3600}' 
+  # I found that the signs were present in the althingi text "%", ", "." and ":", manually removed everything but % which i expanded to "prósent"
+  # I also found that not all the letters were lowercase
 
   # Then we create the pair codes used for subword tokenization. 
 
@@ -93,10 +92,11 @@ if [ $stage -le 0 ]; then
 
     for x in train_600h dev test; do
       #echo "$0: Applying BPE to $x"
+      code=althingi
       ./local/sw_methods/bpe/prepare_subword_text.sh --glossaries "<unk>" \
                                                     $data/$code/${x}/text \
                                                     $subword_dir/pair_codes \
-                                                    $data/$code/${x}/text.seg \
+                                                    $data/$code/${x}/text.very_seg \
                                                     || error "Failed applying BPE"                                                     
     done
       
@@ -203,13 +203,13 @@ if [ $stage -le 0 ]; then
   # The data is split as the following:
 
   # hours:actual:#clips_sm:#clips_althingi
-  # 10h:10.0243h:5000:2200
-  # 20h:20.0156h:9950:4400
-  # 40h:40.029h:20000:8700
-  # 80h:80.003h:39750:17450
-  # 160h:160.066h:79600:34900
-  # 320h:320.022h:159400:69800
-  # 640h:640.101h:185858:254000
+  # 10h:9.99922h:5000:2200
+  # 20h:20.0149h:9950:4400
+  # 40h:40.0234h:20000:8700
+  # 80h:79.7997h:39750:17450
+  # 160h:159.801h:79600:34900
+  # 320h:319.998h:159400:69800
+  # 640h:639.464h:185858:254000
 
   x=10
   sm_clips=5000
@@ -239,7 +239,7 @@ if [ $stage -le 0 ]; then
   utils/combine_data.sh $data/isl_train_${x}h $data/tmp_althingi_${x}h $data/tmp_sm_${x}h
   a=$(cut -d" " -f2  $data/isl_train_${x}h/utt2dur | awk '{s+=$1} END {print s/3600}')
   rm -r $data/tmp_althingi_${x}h  $data/tmp_sm_${x}h
-  echo "${x}h:${a}h:${sm_clips}:${althingi}">> log
+  echo "${x}h:${a}h:${sm_clips}:${althingi}" >> log
 
 
   x=80
@@ -286,6 +286,7 @@ if [ $stage -le 0 ]; then
   rm -r $data/tmp_althingi_${x}h  $data/tmp_sm_${x}h
   echo "${x}h:${a}h:${sm_clips}:${althingi}" >> log
 
+
   echo ============================================================================
   echo "          Train mono system                                               "
   echo ============================================================================
@@ -294,7 +295,8 @@ if [ $stage -le 0 ]; then
   # We don't do that for the smallest coprora as it has less then 
   # 10k utternaces
   for x in 10h 20h 40h 80h 160h 320h 640h; do
-    utils/fix_data_dir.sh $data/${code}_train_${x}
+    echo $x
+    utils/validate_data_dir.sh $data/${code}_train_${x} || utils/fix_data_dir.sh $data/${code}_train_${x}
   done
   # We lose about 21 clips for some reason for isl_train_10h 
 
@@ -303,11 +305,11 @@ if [ $stage -le 0 ]; then
                                 10000 \
                                 $data/${code}_train_${x}/train.10K
   done
-
+  
   steps/train_mono.sh --nj $num_jobs --cmd "$train_cmd" \
                   $data/isl_train_10h \
                   $data/${code}_lang \
-                  $exp/$code/${x}/mono 
+                  $exp/$code/10h/mono 
 
   for x in 20h 40h 80h 160h 320h 640h; do
         (
@@ -316,12 +318,10 @@ if [ $stage -le 0 ]; then
                         $data/${code}_lang \
                         $exp/$code/${x}/mono \
                         >> logs/${code}/${x}.log 2>&1 
-        ) &
+        ) 
   done
   wait
-fi
 
-if [ $stage -le 1 ]; then
   echo ============================================================================
   echo "          Train tri1 delta+deltadelta system                               "
   echo ============================================================================
@@ -401,64 +401,53 @@ if [ $stage -le 1 ]; then
                             
     ) >> logs/${code}/${x}.log 2>&1 
   done
+
+
+# skref 13 er tauganetið
+fi
+# --train_stage 15\
+if [ $stage -le 1 ]; then
+  run_again="true"
+  while [ $run_again == "true" ]; do
+    for x in $set; do
+        echo "code: $code, $x"  
+        time run_ISP/run_tdnn_ISP.sh --stage 12 \
+                                --train_stage $ts \
+                                --affix $x \
+                                --decoding-lang $decode_lm \
+                                --rescoring-lang $rescore_lm \
+                                --langdir $data/${code}_lang \
+                                --data $data/${code}_train_${x} --exp $exp/$code/$x \
+                                $data/${code}_train_${x} \
+                                $data/sm \
+                                >> logs/$code/${x}_tdnn.log 2>&1
+    done
+    status=$(grep Iter: logs/$code/${x}_tdnn.log | tail -n 1 | sed -E "s/.*Iter: //" | sed -e "s/Jobs:.*//")
+    num=$(echo $status | sed -e "s/\/.*//")
+    denom=$(echo $status | sed -e "s/.*\///")
+    echo "Status: ${status}, num: ${num}, denom: ${denom}, here"
+    
+    if [ -n "$num" ] && [ $num == $denom ] ; then
+      echo "We are done"
+      run_again="false"
+    else
+      ts=$num
+    fi
+  done
 fi
 
-echo ============================================================================
-echo "          Decoding tri3                          "
-echo ============================================================================
+if [ $stage -le 2 ]; then
+  for x in $set; do
 
-for x in 10h 20h 40h 80h 160h 320h 640h; do
-  (
-  nohup utils/mkgraph.sh $decode_lm \
-                   $exp/$code/$x/tri3b \
-                   $exp/$code/$x/tri3b/graph 
-  ) >> logs/${code}/${x}.log  2>&1 
-done
-
-
-# We are using the samrómur test and dev set as well as the althingi test
-# and dev sets. 
-for x in 10h; do
-  for set in sm_dev sm_test althingi_dev althingi_test; do
-    (
-    steps/decode_fmllr.sh --nj $num_decode_jobs \
-                          --cmd "$decode_cmd" \
-                          $exp/$code/$x/tri3b/graph \
-                          $data/sm/$set \
-                          $exp/$code/$x/tri3b/decode_${set}
-
-    steps/lmrescore_const_arpa.sh --cmd "$decode_cmd" \
-                                  $decode_lm \
-                                  $rescore_lm \
-                                  $data/sm/$set \
-                                  $exp/$code/$x/tri3b/decode_${set} \
-                                  $exp/$code/$x/tri3b/decode_${set}_rescored
-    ) >> logs/${code}/${x}_decode.log  2>&1
-    done
-done
-
-  # WER info:
-for x in 10h 20h 40h 80h 160h 320h 640h; do
-  echo $x
-  for i in $exp/$code/$x/*/decode_{test,dev}_rescored $exp/$code/$x/*/decode_{test,dev}; do
-    [ -d "$i" ] && grep WER "$i"/wer_* | utils/best_wer.sh;
-  echo 
-  done 
-done >> results/$code/RESULTS
-
-
-# 
-# -----------------------------Let train the time delay neural network!-----------------------------
-
-for x in 40h 80h 160h; do
-    run_ISP/run_tdnn_ISP.sh --stage 5 \
-                            --affix $x \
-                            --decoding-lang $decode_lm \
-                            --rescoring-lang $rescore_lm \
-                            --langdir $data/${code}_lang \
-                            --data $data/${code}_train_${x} --exp $exp/$code/$x \
-                            $data/${code}_train_${x} \
-                            $data/sm \
-                            >> logs/$code/${x}_tdnn.log 2>&1
-    
-done
+      echo "decoding, code: $code, $x"  
+      time run_ISP/tdnn_decode.sh --stage 2 \
+                                  --affix $x \
+                                  --decoding-lang $decode_lm \
+                                  --rescoring-lang $rescore_lm \
+                                  --langdir $data/${code}_lang \
+                                  --exp $exp/$code/$x \
+                                  $data/${code}_train_${x} \
+                                  $data/sm \
+                                  >> logs/$code/${x}_tdnn.log 2>&1
+  done
+fi

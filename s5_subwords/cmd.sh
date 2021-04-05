@@ -10,11 +10,11 @@
 
 
 # run with slurm:
-export train_cmd="utils/slurm.pl"
+export train_cmd="utils/slurm.pl --mem 7G"
 export decode_cmd="utils/slurm.pl --mem 30G"
 export mkgraph_cmd="utils/slurm.pl --mem 4G"
 export big_memory_cmd="utils/slurm.pl --mem 8G"
-export cuda_cmd="utils/slurm.pl --gpu 1"
+export cuda_cmd="utils/slurm.pl --mem 8G"
 
 #c) run it locally...
 #export train_cmd=run.pl

@@ -20,12 +20,13 @@ export LC_ALL=C
 
 num_jobs=50
 num_decode_jobs=30
-stage=0
+stage=1000
 code="libri"
 method='bpe'
 sw_count=3000
 create_mfcc=true
-
+set=
+ts=
 
 libri_data=/work/derik/librispeech/LibriSpeech
 text_corpus=/work/derik/librispeech/librispeech-lm-norm.txt
@@ -43,7 +44,6 @@ mfcc_dir=$exp/$code/mfcc
 . cmd.sh 
 
 subword_dir=$data/$code/sw
-mkdir -p $subword_dir
 
 
 # ln -s ../../kaldi/egs/librispeech/s5
@@ -56,9 +56,8 @@ echo ===========================================================================
   for part in dev-clean test-clean dev-other test-other train-clean-100 train-clean-360 train-other-500; do
     local/libri/data_prep.sh $libri_data/$part $data/$code/$(echo $part | sed s/-/_/g)
   done
-fi
 
-if [ $stage -le 1 ]; then
+
 echo ============================================================================
 echo "               Create $method model and preparing text files         "
 echo ============================================================================
@@ -90,9 +89,8 @@ echo ===========================================================================
                                         $data/$code/local/lang \
                                         $data/$code/lang \
                                         || error "Failed preparing lang"
-fi
 
-if [ $stage -le 2 ]; then
+
 echo ============================================================================
 echo "                		Prepare LM with subword text files with $method          "
 echo ============================================================================
@@ -123,10 +121,8 @@ echo ===========================================================================
                   || error 1 "Failed creating an rescore ${lm_order}g LM";
 
     echo "Done creating an ${lm_order}g. The log is available logs/make_LM_${lm_order}g.log"
-fi        
 
 
-if [ $stage -le 3 ] && $create_mfcc; then
 echo ===========================================================================
 echo "                		Creating MFCC			                "
 echo ============================================================================
@@ -145,7 +141,7 @@ echo ===========================================================================
     
     utils/validate_data_dir.sh $data/$code/$x || utils/fix_data_dir.sh $data/$code/$x 
   done
-fi
+
 
 
 echo ===========================================================================
@@ -345,53 +341,57 @@ for x in 10h 20h 40h 80h 160h 320h 640h; do
 done
 
 
-echo ============================================================================
-echo "          Decoding tri3                          "
-echo ============================================================================
-
-for x in 10h ; do
-  (
-  nohup utils/mkgraph.sh $decode_lm \
-                         $exp/$code/$x/tri3b \
-                         $exp/$code/$x/tri3b/graph 
-  ) >> logs/${code}/${x}.log  2>&1 
-done
-
-
-# We are using the samrómur test and dev set as well as the althingi test
-# and dev sets. 
-for x in 10h; do
-  for set in dev_clean test_clean; do
-    (
-    steps/decode_fmllr.sh --nj $num_decode_jobs \
-                          --cmd "$decode_cmd" \
-                          $exp/$code/$x/tri3b/graph \
-                          $data/$code/$set \
-                          $exp/$code/$x/tri3b/decode_${set}
-
-    steps/lmrescore_const_arpa.sh --cmd "$decode_cmd" \
-                                  $decode_lm \
-                                  $rescore_lm \
-                                  $data/$code/$set \
-                                  $exp/$code/$x/tri3b/decode_${set} \
-                                  $exp/$code/$x/tri3b/decode_${set}_rescored
-    ) >> logs/${code}/${x}.log  2>&1
-    done
-done
-
 
 # 
 # -----------------------------Let train the time delay neural network!-----------------------------
+fi
 
-for x in 320h 640h; do
-    run_ISP/run_tdnn_ISP.sh --stage 6 \
-                            --affix $x \
-                            --decoding-lang $decode_lm \
-                            --rescoring-lang $rescore_lm \
-                            --langdir $data/$code/lang \
-                            --data $data/${code}_train_${x}\
-                            --exp $exp/$code/$x \
-                            $data/${code}_train_${x} \
-                            $data/$code \
-                            >> logs/$code/${x}_tdnn.log 2>&1
-done
+if [ $stage -le 1 ]; then
+
+  run_again="true"
+  while [ $run_again == "true" ]; do
+    for x in $set; do
+        echo $code, $x
+        time run_ISP/run_tdnn_ISP.sh --stage 13 \
+                                --train_stage $ts \
+                                --affix $x \
+                                --decoding-lang $decode_lm \
+                                --rescoring-lang $rescore_lm \
+                                --langdir $data/$code/lang \
+                                --data $data/${code}_train_${x}\
+                                --exp $exp/$code/$x \
+                                $data/${code}_train_${x} \
+                                $data/$code \
+                                >> logs/$code/${x}_tdnn.log 2>&1                 
+    done
+    
+    status=$(grep Iter: logs/$code/${x}_tdnn.log | tail -n 1 | sed -E "s/.*Iter: //" | sed -e "s/Jobs:.*//")
+    num=$(echo $status | sed -e "s/\/.*//")
+    denom=$(echo $status | sed -e "s/.*\///")
+    echo "Status: ${status}, num: ${num}, denom: ${denom}, here"
+    
+    if [ $num == $denom ]; then
+      echo "We are done"
+      run_again="false"
+    else
+      echo "here"
+      ts=$num
+    fi
+  done
+fi
+
+
+if [ $stage -le 2 ]; then
+  for x in 640h; do
+      echo "Decoding: $code, $x"
+      time run_ISP/tdnn_decode.sh --stage 0 \
+                                  --affix $x \
+                                  --decoding-lang $decode_lm \
+                                  --rescoring-lang $rescore_lm \
+                                  --langdir $data/$code/lang \
+                                  --exp $exp/$code/$x \
+                                  $data/${code}_train_${x} \
+                                  $data/$code \
+                                  >> logs/$code/${x}_tdnn.log 2>&1
+  done
+fi
