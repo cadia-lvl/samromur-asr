@@ -10,7 +10,6 @@ if [ $# -ne 3 ]; then
   exit 1;
 fi
 
-
 text_corpus=$1
 vocab_size=$2
 subword_dir=$3

@@ -8,30 +8,27 @@
 # Modified in 2020 for Icelandic by Svanhvít Lilja Ingólfsdóttir 
 #                                   David Erik Mollberg
 
-#SBATCH --mem=12G
-#SBATCH --output=logs/subest_baseline_unigram.log
-
 # set -e - Stop the script if any component returns non-zero
 # set -u - Stop the script if any variables are unbound
 # set -x - Extreme debug mode
 # set -o pipefail - Stop the script if something in a pipeline fail
-set -exo pipefail
+#set -eo pipefail
 
 # standardizes all the sort algorithms 
 export LC_ALL=C
 
-
 num_jobs=20
-num_decode_jobs=20
+num_decode_jobs=10
 decode_gmm=true
 stage=0
 create_mfcc=true
 train_mono=true
-
-lang="subest_baseline_unigram"
-method='unigram'
-sw_count=1000
-
+lm_order=6
+lm_tool='kenlm'
+lang=""
+method='bpe'
+sw_count=8000
+corpora="malromur"
 
 . utils/parse_options.sh || exit 1;
 . path.sh
@@ -41,20 +38,24 @@ sw_count=1000
 AUDIO=/data/asr/malromur/malromur2017/correct
 
 #samromur_root=/data/asr/samromur/samromur_ldc
-#METADATA=/data/asr/malromur/malromur2017/malromur_metadata.tsv
-METADATA=/home/derik/work/tools/normalize/malromur/normalized_files/malromur_metadata_subset.tsv # A small subest of the corpus, used for fast testing.
+METADATA=/data/asr/malromur/malromur2017/malromur_metadata.tsv
+#METADATA=/home/derik/work/tools/normalize/malromur/normalized_files/malromur_metadata_subset.tsv # A small subest of the corpus, used for fast testing.
 
 # Text corpus for the LM
-text_corpus=/data/asr/malromur/malromur2017/malromur_corpus.txt
+#text_corpus=/data/asr/malromur/malromur2017/malromur_corpus.txt
+text_corpus=/work/derik/language_models/LM_corpus/rmh_test
 
+# Todo: Sanity check
 
 if [ $stage -le 0 ]; then
 echo ============================================================================
 echo "                		Data Prep			                "
 echo ============================================================================
-  python3 local/prep_metadata.py --audio $AUDIO \
-                                 --metadata $METADATA \
-                                 --lang $lang 
+  if [ $corpora == 'malromur' ]; then
+    python3 local/prep_metadata.py --audio $AUDIO \
+                                   --metadata $METADATA \
+                                   --lang $lang 
+  fi
 fi
 
 if [ $stage -le 1 ]; then
@@ -68,12 +69,15 @@ echo ===========================================================================
   # all the diffrent subwords create when we tokenize the train/text file. These step have 
   # their own script depending on method choosen. Next we prepare the lexicon and the rest of
   # contentes in the dict and lang folders. 
-
   subword_dir=data/$lang/sw
   mkdir -p $subword_dir
 
   if [[ $method == 'bpe' ]]; then
     # Form a given text corpus we learn to create subwords we store the "model" as pair_codes
+    # Note: Maybe we should be using the transcripts to learn the pair codes because that will
+    # make up the words that we try to model.
+    #transcripts=/data/asr/malromur/malromur2017/malromur_corpus.txt
+
     python3 local/sw_methods/bpe/learn_bpe.py -i $text_corpus \
                                               -s $sw_count > $subword_dir/pair_codes
     
@@ -96,15 +100,16 @@ echo ===========================================================================
     #                                          --codes $subword_dir/pair_codes \
     #                                          | sed 's/ /\n/g' | sort -u > $subword_dir/subwords
   
-    elif [[ $method == 'unigram' || $method == 'sp_bpe' ]]; then
-    
+  elif [[ $method == 'unigram' || $method == 'sp_bpe' ]]; then
+
     model=$subword_dir/unigram_${sw_count}
 
-    # Form a given text corpus we learn to create subwords we store the "model" as in $model
+    # Using the text corpus create the subword "model" and store it as $model
     python3 local/sw_methods/sp/train_sp.py -i $text_corpus \
                                             -o $model \
                                             -v $sw_count \
                                             -t $method \
+                                            -l "True" \
                                             || error "Failed training a ${method} model"
 
     # Using the model we subword tokenize the kaldi format text files
@@ -123,27 +128,34 @@ echo ===========================================================================
 
     # Note: What text file should we use here, if we use the text_corpus the subword lexicon 
     # might increase.  
-    #cp $subword_dir/text_corpus $subword_dir/text_corpus_plus_text
-    #cut -d" " -f2- data/$lang/train/text >> $subword_dir/text_corpus_plus_text
-    #cut -d" " -f2- data/$lang/train/text | sed 's/ /\n/g' | LC_ALL=C sort -u | grep -v '^[[:space:]]*$' > $subword_dir/subwords 
-    #cut -d" " -f2- $subword_dir/text_corpus | sed 's/ /\n/g' | sort -u | grep -v '^[[:space:]]*$' > $subword_dir/subwords 
 
   elif [[ $method == 'morfessor' ]]; then
-    echo "To be done"
+    # This step is not fully complete, I had to setup morfessor in 
+    # Had to use conda env to install package. 
+    # Is avalible here https://github.com/Waino/morfessor-emprune
+  
+    ./local/sw_methods/morfessor/train_morfessor.sh $text_corpus \
+                                                    $sw_count \
+                                                    $subword_dir
+
+    for x in train test eval; do
+      #echo "$0: Applying BPE to $x"  
+      ./local/sw_methods/morfessor/apply_morfessor.sh data/$lang/${x}/text \
+                                                      $subword_dir \
+                                                      data/$lang/${x}/text \
+                                                      'true' \
+                                                      || error "Failed applying BPE"                                                     
+    done
+
+    ./local/sw_methods/morfessor/apply_morfessor.sh $text_corpus \
+                                                $subword_dir \
+                                                $subword_dir/text_corpus 
   fi 
   
-  #cut -d" " -f2- data/$lang/train/text | sed 's/ /\n/g' | grep -v '^[[:space:]]*$' | sort -u > $subword_dir/subwords 
-
-  # The following scripts should be run independant of which subword method is choosen
-  #echo "$0: Preparing lexicon"
-  #python3 local/prepare_lexicon.py --i $subword_dir/subwords \
-  #                                 --o $subword_dir/subword_lexicon \
-  #                                 --is_subword True
-
   echo "$0: Preparing lexicon, dict folder and lang folder" 
 
   cut -d" " -f2- data/$lang/train/text >> $subword_dir/text_corpus
-  local/prepare_dict_subwordV2.sh $subword_dir/text_corpus \
+  local/prepare_dict_subword.sh $subword_dir/text_corpus \
                                   $subword_dir \
                                   data/$lang/local/dict \
                                   || error "Failed preparing lang"
@@ -160,17 +172,35 @@ echo ===========================================================================
 echo "                		Prepare LM with subword text files with $method          "
 echo ============================================================================
 
-  local/lm/prepare_lm_subword.sh $subword_dir/text_corpus \
-                              data/$lang/test/text \
-                              data/$lang/local/dict/lexicon.txt \
-                              data/$lang/local/lm \
-                              6               
+  if [ $lm_tool == 'srilm' ]; then
+    local/lm/prepare_lm_subword.sh $subword_dir/text_corpus \
+                                data/$lang/test/text \
+                                data/$lang/local/dict/lexicon.txt \
+                                data/$lang/local/lm \
+                                6               
 
-  utils/format_lm.sh  data/$lang/lang \
-                      data/$lang/local/lm/lm.gz \
-                      data/$lang/local/dict/lexicon.txt \
-                      data/$lang/lang_test
-fi
+    utils/format_lm.sh  data/$lang/lang \
+                        data/$lang/local/lm/lm.gz \
+                        data/$lang/local/dict/lexicon.txt \
+                        data/$lang/lang_${lm_order}g
+    
+  elif [ $lm_tool == 'kenlm' ]; then
+  
+    echo "Preparing an ${lm_order}g LM"
+    $train_cmd --mem 20G "logs/make_LM_${lm_order}g_prune_test.log" \
+               local/lm/make_LM.sh \
+               --order $lm_order \
+               --pruning "4 6 8 10 12 14" \
+               --carpa false \
+               $subword_dir/text_corpus \
+               data/$lang/lang \
+               data/$lang/local/dict/lexicon.txt \
+               data/$lang/local/ \
+               || error 1 "Failed creating an unpruned ${lm_order}g LM";
+
+    echo "Done creating an ${lm_order}g. The log is available logs/make_LM_${lm_order}g.log"
+  fi
+fi        
 
 if [ $stage -le 3 ] && $create_mfcc; then
 echo ===========================================================================
@@ -278,16 +308,26 @@ if [ $stage -le 8 ] && $decode_gmm; then
   echo "          Decoding tri3                          "
   echo ============================================================================
   tri=tri3b
-  utils/mkgraph.sh data/$lang/lang_test \
-                   exp/$lang/$tri \
-                   exp/$lang/$tri/graph || exit 1;
+  
+  if [ $lm_tool == 'srilm' ]; then
+    utils/mkgraph.sh data/$lang/lang_test \
+                     exp/$lang/$tri \
+                     exp/$lang/$tri/graph_${lm_tool} || exit 1;
 
+  elif [ $lm_tool == 'kenlm' ]; then
+    utils/mkgraph.sh data/$lang/local/lang_${lm_order}g \
+                     exp/$lang/$tri \
+                     exp/$lang/$tri/graph_${lm_tool} || exit 1;
+  fi
+  
+  # Should I add this to decode??
+  #  --config conf/decode.config
   steps/decode_fmllr.sh --nj $num_decode_jobs \
                         --cmd "$decode_cmd" \
-                        exp/$lang/$tri/graph \
+                        exp/$lang/$tri/graph_${lm_tool} \
                         data/$lang/test \
-                        exp/$lang/$tri/decode || exit 1;
+                        exp/$lang/$tri/decode_${lm_tool} || exit 1;
 fi
 
-echo "$0: training succeed"
+echo "$0: training succeeded"
 exit 0
