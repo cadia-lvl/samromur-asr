@@ -3,7 +3,7 @@
 # Copyright 2020 David Erik Mollberg
 # Apache 2.0
 
-# This script prepares a grapaheme based dictionary, therefore the lexicon.
+# This script prepares a grapaheme based dictionary folder.
 
 if [ $# -ne 3 ]; then
     echo "Usage:  $0 <subword-tokenized-text-corpus> <tmp> <dict-dst-dir>" 
@@ -20,7 +20,6 @@ dict=$3
 . ./path.sh
 . ./utils/parse_options.sh || exit 1;
 
-#rm -r $tmp
 mkdir -p $dict $tmp 
 
 echo "$0: Preparing dictionary"
