@@ -40,46 +40,35 @@ for f in "$lmtext" "$lexicon"; do \
     [ ! -f $f ] && echo "$0: expected $f to exist" && exit 1;
 done
 
-#if [ ${min1cnt} -eq 0 ]; then
-#    affix=_unpruned
-#else
-#    affix=_${min3cnt}${min2cnt}${min1cnt}pruned
-#fi
-
-affix="$(echo -e "${pruning}" | tr -d '[:space:]')pruned"
-
 
 if [ $stage -le 1 ]; then
     # Preparing the language model
-    mkdir -p "$dir"/lang_${order}g
+    mkdir -p "$dir"
     for s in L_disambig.fst L.fst oov.int oov.txt phones phones.txt \
     topo words.txt; do
-        [ ! -e "$dir"/lang_${order}g/$s ] && cp -r "$lang"/$s "$dir"/lang_${order}g/$s
+        [ ! -e "$dir"/$s ] && cp -r "$lang"/$s "$dir"/$s
     done
-    
+    module load kenlm
     echo "Build ARPA-format language model"
-    lmplz \
-    --skip_symbols \
-    -o ${order} -S 70% \
-    --prune $pruning \
-    --text "$lmtext" \
-    --discount_fallback \
-    --limit_vocab_file <(cut -d' ' -f1 "$dir"/lang_${order}g/words.txt | grep -Ev "<eps>|<unk>") \
-    | gzip -c > "$dir"/lang_${order}g/kenlm_${order}g${affix}.arpa.gz || error 1 "lmplz failed"
+    lmplz --skip_symbols \
+          -o ${order} -S 30% \
+          --prune $pruning \
+          --text "$lmtext" \
+          --discount_fallback \
+          --limit_vocab_file <(cut -d' ' -f1 "$dir"/words.txt | grep -Ev "<eps>|<unk>") \
+          | gzip -c > "$dir"/kenlm_${order}g.arpa.gz || error 1 "lmplz failed"
 fi
 
 if [ $stage -le 2 ]; then
     if [ $carpa = true ]; then
         echo "Build constant ARPA language model"
-        utils/build_const_arpa_lm.sh \
-        "$dir"/lang_${order}g/kenlm_${order}g${affix}.arpa.gz \
-        "$lang" "$dir"/lang_${order}g || error 1 "Failed creating a const. ARPA LM"
+        utils/build_const_arpa_lm.sh "$dir"/kenlm_${order}g.arpa.gz \
+                                     "$lang" "$dir" || error 1 "Failed creating a const. ARPA LM"
         echo "Succeeded in creating G.carpa"
     else
         echo "Convert ARPA-format language models to FSTs."
-        utils/format_lm.sh \
-        "$lang" "$dir"/lang_${order}g/kenlm_${order}g${affix}.arpa.gz \
-        "$lexicon" "$dir"/lang_${order}g || error 1 "Failed creating G.fst"
+        utils/format_lm.sh "$lang" "$dir"/kenlm_${order}g.arpa.gz \
+                           "$lexicon" "$dir" || error 1 "Failed creating G.fst"
         echo "Succeeded in creating G.fst"
     fi
 fi

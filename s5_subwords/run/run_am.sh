@@ -7,6 +7,7 @@ stage=0
 
 . ./cmd.sh
 . ./path.sh
+./setup.sh
 . utils/parse_options.sh
 
 METADATA=../demo_data/metadata.tsv
@@ -24,8 +25,8 @@ if [ $stage -le 0 ]; then
   echo "                		Data prep			                              "
   echo ============================================================================
     ./local/samromur_prep_data.py --a $AUDIO \
-                                  --m $METADATA \
-                                  --o $data 
+      --m $METADATA \
+      --o $data 
 fi
 
 if [ $stage -le 1 ]; then
