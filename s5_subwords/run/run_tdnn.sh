@@ -84,7 +84,7 @@ lang=$data/lang_chain
 
 # if we are using the speed-perturbed data we need to generate
 # alignments for it.
-run/run_ivector_common.sh --stage $stage \
+local/nnet3/run_ivector_common.sh --stage $stage \
   --nj 30 \
   --speed-perturb $speed_perturb \
   --generate-alignments $speed_perturb \
