@@ -215,13 +215,14 @@ if [ $stage -le 5 ]; then
 echo ============================================================================
 echo "               Decoding for ${tag}       "
 echo ============================================================================
-    run/tdnn_decode.sh --stage 0 \
-        --decoding-lang $data/lm/${tag}_${lm_order}g \
-        --rescoring-lang $data/lm/${tag}_${lm_order}g_rescoring \
-        --langdir $data/lang/$tag \
-        --exp $exp \
-        --tag $tag \
-        --boundary-marker $boundary_marker \
-        $data/test \
-        > $log/$method/${tag}_decode.log 2>&1
+  
+
+  run/tdnn_decode.sh --stage 0 \
+      --decoding-lang $data/lm/${tag}_${lm_order}g \
+      --rescoring-lang $data/lm/${tag}_${lm_order}g_rescoring \
+      --langdir $data/lang/$tag \
+      --exp $exp \
+      --boundary-marker $boundary_marker \
+      $data/test \
+      > $log/$method/${tag}_decode.log 2>&1
 fi
