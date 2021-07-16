@@ -105,13 +105,13 @@ if [ $stage -le 9 ]; then
   # use the same num-jobs as the alignments
   #nj=$(cat ${ali_dir}/num_jobs) || exit 1;
   steps/align_fmllr_lats.sh --nj $n_alijobs \
-                            --stage $align_stage \
-                            --cmd "$train_cmd --time 2-00" \
-                            --generate-ali-from-lats $generate_ali_from_lats \
-                            $data/$train_set \
-                            $langdir \
-                            $exp/${gmm} \
-                            $exp/${gmm}_lats$suffix
+    --stage $align_stage \
+    --cmd "$train_cmd --time 2-00" \
+    --generate-ali-from-lats $generate_ali_from_lats \
+    $data/$train_set \
+    $langdir \
+    $exp/${gmm} \
+    $exp/${gmm}_lats$suffix
   
   rm $exp/${gmm}_lats$suffix/fsts.*.gz # save space
 fi
