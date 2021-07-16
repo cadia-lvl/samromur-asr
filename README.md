@@ -47,7 +47,10 @@ Samrómur ASR is a collection of scripts, recipes, and tutorials for training an
 
 The Samrómur speech corpus is an open (CC-BY 4 licence) and accessible database of voices that everyone is free to use when developing software in Icelandic.
 The database consists of sentences and audio clips from the reading of those sentences as well as metadata about the speakers. Each entry in the database contains a WAVE audio clip and the corresponding text file.
-The Samrómur speech corpus will be available for download soon on [CLARIN-IS](http://clarin.is/gogn/).
+
+The Samrómur speech corpus is available for download at [OpenSLR](https://www.openslr.org/112/).\
+The Samrómur speech corpus will be available for download soon on [CLARIN-IS](http://clarin.is/gogn/) and [LDC](https://catalog.ldc.upenn.edu/).
+
 For more information about the dataset visit [https://samromur.is/gagnasafn](https://samromur.is/gagnasafn).
 
 ## 3. Setup
