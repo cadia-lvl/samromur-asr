@@ -76,7 +76,7 @@ echo ===========================================================================
   # also has an implemation of the Unigram tokenizer. The fourth option is Morfessor. 
 
 
-  # Note: If you have dencent sized corpus > 4 million sentences, do create a subset  of that
+  # Note: If you have a decent sized corpus > 4 million sentences, do create a subset of that
   # corpus for this section and replace the input "$text_corpus" with that subset.
   # e.g. "shuf $text_corpus | head -n 4000000 > $corpus_dir/base_subset_4m
   # This limit is hard coded into the configs for the SP models.
