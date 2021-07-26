@@ -1,5 +1,5 @@
 # Subword recipe for Icelandic
-This is a subword-based recipe for an Icelandic ASR build using the Kaldi toolkit. Running the recipe on other languages only requires modifications to the dataset-specific data preparation steps. Subword-based ASR models have the advantage of being able to create out-of-vocabulary words. 
+This is a subword-based recipe for an Icelandic ASR built using the Kaldi toolkit. Running the recipe on other languages only requires modifications to the dataset-specific data preparation steps. Subword-based ASR models have the advantage of being able to transcribe out-of-vocabulary words. 
 
 ## Running the recipe 
 In the folder "run" are the scripts used to interface the recipe. The acoustic and subword modelling are in separate scripts. The subword related modifications are only done to the lexicon and language model, except that the phonetic units used for the acoustic model are graphemes instead of phonemes. 
