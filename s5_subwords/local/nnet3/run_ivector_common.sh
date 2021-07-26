@@ -53,7 +53,7 @@ mfccdir=$exp/mfcc
 if [ "$speed_perturb" == "true" ]; then
   if [ $stage -le 1 ]; then
   echo ===========================================================================
-  echo "                		Speed pertrubing data			                "
+  echo "                		Speed perturbing data			                "
   echo ============================================================================
 
     #Although the nnet will be trained by high resolution data, we still have to perturbe the normal data to get the alignment
