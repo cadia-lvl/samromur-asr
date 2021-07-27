@@ -4,8 +4,6 @@
 <img src="https://user-images.githubusercontent.com/9976294/84160937-4042f880-aa5e-11ea-8341-9f1963e0e84e.png" alt="Cover Image" align="center"/>
 
 <p align="center"><i>
-  NOTE! This is a project in development.
-  
   Automatic Speech Recognition (ASR) system for the Samrómur speech corpus using <a href="http://kaldi-asr.org/">Kaldi</a><br/>
   Center for Analysis and Design of Intelligent Agents, Language and Voice Lab <br/>
   <a href="https://ru.is">Reykjavik University</a>
