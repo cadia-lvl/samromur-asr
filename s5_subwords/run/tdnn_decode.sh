@@ -94,8 +94,8 @@ fi
 if [ $stage -le 3 ]; then
   rm $dir/.error 2>/dev/null || true
 
-  # The wer_output_filter contains a sed command that removes the subword separtor 
-  # and the command needs to be tailord to the specific boundary marking style.
+  # The wer_output_filter contains a sed command that removes the subword separator 
+  # and the command needs to be tailored to the specific boundary marking style.
   echo '#!/bin/sed -f' > local/wer_output_filter
   echo "s/<sil>//g" >> local/wer_output_filter
   echo "s/<UNK>//g" >> local/wer_output_filter
