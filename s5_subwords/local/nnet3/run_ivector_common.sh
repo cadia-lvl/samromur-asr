@@ -6,7 +6,7 @@ set -e
 # preparation and iVector-related parts of the script. See those scripts for examples of usage.
 
 stage=1
-generate_alignments=false # Depends on whether we are doing speech perturbations
+generate_alignments=true # Depends on whether we are doing speech perturbations
 speed_perturb=false
 create_high_mfcc=true
 exp=exp

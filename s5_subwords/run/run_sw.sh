@@ -53,8 +53,9 @@ corpus_dir=$data/corpora
 mkdir -p $data $exp $log/$method $model_dir $corpus_dir/$method
 
 # Path to the subword-kaldi tool needed to create the L.fst.
+# It should be included as a git submodule otherwise do 
 # git clone https://github.com/aalto-speech/subword-kaldi.git to your desired location
-subword_tools=../../../tools/subword-kaldi/local
+subword_tool="subword-kaldi"
 
 
 if [ $create_venv == true ]; then
@@ -168,7 +169,7 @@ echo ===========================================================================
     tmpdir=$data/local/tmp/$tag
 
     # Overwrite L_disambig.fst
-    $subword_tools/make_lfst_${boundary_marker}.py $(tail -n$extra $dir/phones/disambig.txt) < $tmpdir/lexiconp_disambig.txt | \
+    $subword_tools/local/make_lfst_${boundary_marker}.py $(tail -n$extra $dir/phones/disambig.txt) < $tmpdir/lexiconp_disambig.txt | \
       fstcompile --isymbols=$dir/phones.txt \
         --osymbols=$dir/words.txt \
         --keep_isymbols=false \
