@@ -28,9 +28,13 @@ The first step in the script is to train the subword tokenization model. Dependi
 
 The next step is to create the dictionary folder which that has the lexicon and other files that Kaldi needs. They are all made by extracting information from the subword tokenized text corpus. 
 
-The next step is to prepare the "lang" directory. For that, an external package is needed, which was developed by [Aalto University](https://github.com/aalto-speech/subword-kaldi.git), it's included as a submodule. It is used to create the L.fst for the boundary marking style. Please read their paper, found in the repository, for more information. 
+The next step is to prepare the "lang" directory. For that, an external package is needed, which was developed by [Aalto University](https://github.com/aalto-speech/subword-kaldi.git), it's included as a submodule. It is used to create the L.fst for the boundary marking style. Please read their paper, found in the repository, for more information. Use the flag  "--recurse-submodules to include the submodule 
+```
+git clone --recurse-submodules
+```
 
 The last step before decoding is to create the language model. The n-gram count has to be higher than in traditional language models. The default is 6-gram for the decoding LM and 8-gram for the rescoring LM.
+
 
 ### run/tdnn_decode.sh
 This step is the final step in [run/run_sw.sh](run/run_sw.sh). In this step, the decoding graph is compiled. Next, the correct "wer_output_filter" is created depending on the boundary marking style used. This filter is a set of sed commands that will remove the space and boundary marker between individual subword units. Finally the decoding is done for the decoding and rescoring LM.
