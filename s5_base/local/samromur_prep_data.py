@@ -52,13 +52,21 @@ def append_to_file(df, audio_dir: str, text, wavscp, utt2spk, spk2gender):
     for i in df.index:
         utt_id = f"{df.at[i, 'speaker_id']}-{i}"
         text.write(f"{utt_id} {df.at[i, 'sentence_norm']}\n")
+
+        # Handle folder structure for test-dev-train/padded_speaker_id/file
+        # Ex: test/000037/000037-0001844.flac
+        status = df.at[i, "status"]
+        speaker_id = str(df.at[i, "speaker_id"]).zfill(6)
+        filename = df.at[i, "filename"]
+        path = Path(audio_dir).joinpath(status, speaker_id, filename)
+
         wavscp.write(
-            f"{utt_id} sox - -c1 -esigned -r {df.at[i, 'sample_rate']} -twav - < {Path(audio_dir).joinpath(df.at[i, 'filename'])} |\n"
+            f"{utt_id} sox - -c1 -esigned -r {df.at[i, 'sample_rate']} -twav - < {path} |\n"
         )
         utt2spk.write(f"{utt_id} {df.at[i, 'speaker_id']}\n")
 
         # This line will cause in error in versions of Samrómur where the speaker is unknown
-        spk2gender.write(f"{df.at[i, 'speaker_id']} {df.at[i, 'sex'][0]}\n")
+        spk2gender.write(f"{df.at[i, 'speaker_id']} {df.at[i, 'gender'][0]}\n")
 
 
 def clean_dir(datadir):
@@ -105,7 +113,7 @@ def main():
                 append_to_file(df_part, audio_dir, text, wav, utt2spk, spk2gender)
 
             if data_file == "eval":
-                df_part = df[df["status"].str.contains("eval")]
+                df_part = df[df["status"].str.contains("test")]
                 append_to_file(df_part, audio_dir, text, wav, utt2spk, spk2gender)
 
         clean_dir(datadir)
