@@ -1,0 +1,6 @@
+%WER 34.95 [ 1976 / 5654, 321 ins, 340 del, 1315 sub ] exp/tri3/decode_test_rescored/wer_16_0.0
+%WER 22.08 [ 389 / 1762, 43 ins, 89 del, 257 sub ] exp/tri3/decode_dev_rescored/wer_15_0.0
+%WER 18.06 [ 1021 / 5654, 100 ins, 236 del, 685 sub ] exp/chain/lstm1e_sp_bi/decode_test_rescore/wer_12_0.5
+exp/chain/lstm1e_sp_bi/decode_test_rescore
+%WER 11.24 [ 198 / 1762, 19 ins, 30 del, 149 sub ] exp/chain/lstm1e_sp_bi/decode_dev_rescore/wer_9_0.0
+exp/chain/lstm1e_sp_bi/decode_dev_rescore
