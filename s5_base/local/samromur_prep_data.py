@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Author: David Erik Mollberg, Inga Run Helgadottir (Reykjavik University)
+# Author: David Erik Mollberg, Inga Run Helgadottir (Reykjavik University), Staffan Hedström
 # Description:
 # This script will output the files text, wav.scp, utt2spk, spk2utt and spk2gender
 # to data/train, data/eval data/test with test/train/eval splits defined in the metadatafile.
@@ -20,7 +20,7 @@ def parse_arguments():
         """
     )
     parser.add_argument(
-        "audio_dir", type=dir_path, help="The Samromur audio file",
+        "audio_dir", type=dir_path, help="The Samromur audio folder",
     )
     parser.add_argument(
         "meta_file", type=file_path, help="The Samromur metadata file",
@@ -89,7 +89,7 @@ def main():
     outdir = args.output_dir
     Path(outdir).mkdir(parents=True, exist_ok=True)
 
-    df = pd.read_csv(metadata, sep="\t", index_col="id")
+    df = pd.read_csv(metadata, sep="\t", index_col="id", dtype={'is_valid': object})
 
     for data_file in ["train", "dev", "eval"]:
         datadir = Path(outdir).joinpath(data_file)
