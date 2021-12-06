@@ -3,7 +3,7 @@
 # Author: David Erik Mollberg, Inga Run Helgadottir (Reykjavik University), Staffan Hedström
 # Description:
 # This script will output the files text, wav.scp, utt2spk, spk2utt and spk2gender
-# to data/train, data/eval data/test with test/train/eval splits defined in the metadatafile.
+# to data/train, data/dev data/test with test/train/dev splits defined in the metadatafile.
 
 import subprocess
 import argparse
@@ -14,9 +14,9 @@ import pandas as pd
 def parse_arguments():
     parser = argparse.ArgumentParser(
         description="""This script will output the files text, wav.scp, utt2spk, spk2utt and spk2gender\n
-        to data/train, data/eval and data/test, with test/train/eval splits defined in the metadatafile.\n
-        Usage: python3 samromur_prep_data.py <path-to-samromur-audio> <info-file-training>\n
-            E.g. python3 samromur_prep_data.py /data/corpora/samromur/audio/ metadata.tsv\n
+        to data/train, data/dev and data/test, with test/train/eval splits defined in the metadatafile.\n
+        Usage: python3 samromur_prep_data.py <path-to-samromur-audio> <info-file-training> <output-directory>\n
+            E.g. python3 samromur_prep_data.py /data/corpora/samromur/audio/ metadata.tsv /data/corpora/samromur/prep_output\n
         """
     )
     parser.add_argument(
@@ -89,7 +89,13 @@ def main():
     outdir = args.output_dir
     Path(outdir).mkdir(parents=True, exist_ok=True)
 
-    df = pd.read_csv(metadata, sep="\t", index_col="id", dtype={'is_valid': object})
+    # dtype fixes low mixed types warning
+    df = pd.read_csv(
+        metadata,
+        sep="\t",
+        index_col="id",
+        dtype={"is_valid": object, "age": object, "marosijo_score": object},
+    )
 
     for data_file in ["train", "dev", "eval"]:
         datadir = Path(outdir).joinpath(data_file)
