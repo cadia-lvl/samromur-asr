@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # Prepare training lang dir, given a data dir and Framburðarorðabókin
 #
@@ -6,6 +6,7 @@
 #            2016 Reykjavik University (Author: Inga Run Helgadottir)
 #
 
+. ./path.sh
 . local/utils.sh
 . utils/parse_options.sh
 
@@ -41,8 +42,7 @@ join -t '' \
 for w in sil oov; do echo $w; done > $dictdir/silence_phones.txt
 echo "sil" > $dictdir/optional_silence.txt
 
-utils/prepare_lang.sh \
-$dictdir "<unk>" data/local/lang $langdir
+utils/prepare_lang.sh $dictdir "<unk>" data/local/lang $langdir
 
 utils/validate_lang.pl $langdir || error "lang dir invalid"
 

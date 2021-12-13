@@ -1,2 +1,0 @@
-%WER 30.17 [ 4573 / 15159, 606 ins, 788 del, 3179 sub ] exp/tri3/decode_eval_rescored/wer_14_0.0
-%WER 23.33 [ 3218 / 13793, 480 ins, 393 del, 2345 sub ] exp/tri3/decode_dev_rescored/wer_15_0.0

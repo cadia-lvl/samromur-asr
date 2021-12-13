@@ -1,0 +1,6 @@
+%WER 20.70 [ 17329 / 83722, 3868 ins, 1981 del, 11480 sub ] exp/tri3/decode_eval_rescored/wer_17_0.5
+%WER 18.69 [ 14900 / 79710, 3338 ins, 1762 del, 9800 sub ] exp/tri3/decode_dev_rescored/wer_17_0.5
+%WER 12.98 [ 10867 / 83722, 2448 ins, 1058 del, 7361 sub ] exp/chain/tdnn_lstm1e_sp_bi/decode_eval_rescore/wer_15_1.0
+exp/chain/tdnn_lstm1e_sp_bi/decode_eval_rescore
+%WER 11.48 [ 9149 / 79710, 2264 ins, 745 del, 6140 sub ] exp/chain/tdnn_lstm1e_sp_bi/decode_dev_rescore/wer_13_0.5
+exp/chain/tdnn_lstm1e_sp_bi/decode_dev_rescore

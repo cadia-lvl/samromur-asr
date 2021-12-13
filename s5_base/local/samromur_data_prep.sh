@@ -1,47 +1,44 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Copyright 2020 Reykjavik University (Judy Fong - judyfong@ru.is)
 # Apache 2.0.
 #
 # This script prepares the samromur dataset for kaldi for training, test, or
 # eval datasets. The new directory have utt2spk,spk2utt,text, wav.scp
 
-if [ $# -ne 3 ]; then
-    echo "Usage: $0 <samromur-speech> <sammromur-type> <out-data-dir>"
-    echo "e.g.: $0 /mnt/data/samromur train data/"
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <samromur-speech> <out-data-dir>"
+    echo "e.g.: $0 /data/asr/samromur/samromur_21.05 data/"
     exit 1;
 fi
 
 set -e
 
-data_type=$2
-data_dir=$3
-audio_src_dir=$1/audio
+dataset_dir=$1
+data_dir=$2
 metadata=$1/metadata.tsv
-tmp_dir=$data_dir/${data_type}/.tmp/
+tmp_dir=$data_dir/local/samromur
 
-# Folder structure setup
-[[ -d $data_dir/$data_type ]] && rm -r $data_dir/$data_type
-mkdir -p $data_dir/$data_type
+
 mkdir -p $tmp_dir
 
-# Get metadata
-cat $metadata | sed '1d' > $tmp_dir/metadata.tsv
-cat $tmp_dir/metadata.tsv | awk -F'\t' '{print($1"\t"$2"\t"$3"\t"$10"\t"$11)}' \
-  > $tmp_dir/usefuldata.tsv
+#sed -e 1d $metadata | cut -f2,3,5,19 > $tmp_dir/usefuldata.tsv
 
-i=1
-while IFS=$'\t' read -r id name spk sentence type; do
-    if [ "$type" = "$data_type" ]; then
-        # create utt2spk
-        echo "$spk-$id $spk" >> $data_dir/$data_type/utt2spk
-        # create normalized text file
-        echo "$spk-$id $sentence" >> $data_dir/$data_type/text
-        # create wav.scp
-        echo "$spk-$id sox -twav - -c1 -esigned -r16000 -G -twav - < $audio_src_dir/$name |" \
-          >> $data_dir/$data_type/wav.scp
-    fi
-done < $tmp_dir/usefuldata.tsv
+# Folder structure setup
+for subset in train test dev; do
+  [[ -d $data_dir/${subset}_samromur ]] && rm -r $data_dir/${subset}_samromur
+  mkdir -p $data_dir/${subset}_samromur
+  sed -e 1d $metadata | cut -f2,3,5,19 | grep "$subset$" > $tmp_dir/$subset.tsv
 
-utils/utt2spk_to_spk2utt.pl $data_dir/$data_type/utt2spk > $data_dir/$data_type/spk2utt
+  awk -F '\t' '{print $2,$1}' $tmp_dir/$subset.tsv | sed 's/.flac//' > $data_dir/${subset}_samromur/utt2spk
+  awk -F '\t' '{print $2,$3}' $tmp_dir/$subset.tsv | sed 's/.flac//' > $data_dir/${subset}_samromur/text
+  awk -F '\t' -v var=$dataset_dir '{print $2,"sox -tflac - -c1 -esigned -r16000 -G -twav - <",var"/"$4"/"$1"/"$2"|"}' \
+    $tmp_dir/$subset.tsv | sed 's/.flac//' > $data_dir/${subset}_samromur/wav.scp
 
-rm -rf $tmp_dir
+  utils/utt2spk_to_spk2utt.pl $data_dir/${subset}_samromur/utt2spk > $data_dir/${subset}_samromur/spk2utt
+
+done
+
+
+
+echo "Done, Samromur dataset in $data_dir."
+exit 0;

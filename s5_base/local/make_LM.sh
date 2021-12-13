@@ -45,13 +45,13 @@ else
 fi
 
 if [ $stage -le 1 ]; then
-    # Preparing the language model
-    mkdir -p "$dir"/lang_${order}g
-    for s in L_disambig.fst L.fst oov.int oov.txt phones phones.txt \
-    topo words.txt; do
-        [ ! -e "$dir"/lang_${order}g/$s ] && cp -r "$lang"/$s "$dir"/lang_${order}g/$s
+    # Link the necessary files from lang
+    mkdir -p $dir/lang_${order}g
+    for s in L_disambig.fst L.fst oov.int oov.txt phones phones.txt topo words.txt; do
+        [ ! -e $dir/lang_${order}g/$s ] && cp -r $lang/$s $dir/lang_${order}g/$s
     done
-    
+
+    # Preparing the language model
     echo "Build ARPA-format language model"
     lmplz \
     --skip_symbols \

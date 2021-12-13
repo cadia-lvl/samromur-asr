@@ -1,0 +1,3 @@
+%WER 27.29 [ 22846 / 83725, 2884 ins, 7278 del, 12684 sub ] exp/chain_online_cmn/tdnn1a_sp/decode_3g_test/wer_9_0.0
+%WER 15.81 [ 13234 / 83725, 3360 ins, 1097 del, 8777 sub ] exp/chain_online_cmvn/tdnn1i_sp/decode_3g_test/wer_13_0.0
+%WER 14.70 [ 12305 / 83725, 3299 ins, 872 del, 8134 sub ] exp/chain_online_cmvn/tdnn1i_sp/decode_4g_test/wer_13_0.0
