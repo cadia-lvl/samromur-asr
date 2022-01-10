@@ -268,7 +268,7 @@ if  [ $current_stage -ge $from_stage ] && [ $current_stage -le $to_stage ]; then
     echo "-----------------------------"
 
     #Prepare the experiment
-    deepspeech_model=utils/example_model.pb
+    deepspeech_model=exp/model_training/MODEL/output_graph.pb
     audio_in=utils/example_audio.wav
     
     deepspeech --model $deepspeech_model \
@@ -289,7 +289,7 @@ if  [ $current_stage -ge $from_stage ] && [ $current_stage -le $to_stage ]; then
     echo "-----------------------------"
 
     #Prepare the experiment
-    deepspeech_model=utils/example_model.pb
+    deepspeech_model=exp/model_training/MODEL/output_graph.pb
     scorer=utils/example.scorer
     audio_in=utils/example_audio.wav
     
