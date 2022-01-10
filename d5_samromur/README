@@ -1,0 +1,24 @@
+-------------------------------------------------------
+Create the Conda environment for DeepSpeech.
+-------------------------------------------------------
+- Follow the commands below in this precise order:
+
+conda create -n deepspeech python=3.7 anaconda
+conda activate deepspeech
+conda install cudatoolkit=10.1
+conda install numpy=1.18 scipy
+conda install -c conda-forge git-lfs
+conda install -c conda-forge nvidia-apex
+conda install pycodestyle=2.7.0 pyflakes=2.3.1
+conda install lxml requests python-dateutil pytz
+pip install deepspeech-gpu==0.10.0-alpha.3 ds-ctcdecoder==0.10.0-alpha.3
+pip install tensorflow-gpu==1.15.4
+git clone https://github.com/mozilla/DeepSpeech.git
+cd DeepSpeech
+python setup.py install
+
+-------------------------------------------------------
+Carlos Daniel Hernández Mena
+carlosm@ru.is
+-------------------------------------------------------
+
