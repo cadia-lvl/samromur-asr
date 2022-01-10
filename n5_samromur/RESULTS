@@ -1,0 +1,4 @@
+exp/test_inference_with_lm WER (test) = 22.83%
+exp/test_inference_no_lm WER (test) = 80.38%
+exp/dev_inference_with_lm WER (dev) = 20.23%
+exp/dev_inference_no_lm WER (dev) = 69.19%

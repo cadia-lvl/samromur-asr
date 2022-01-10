@@ -1,0 +1,50 @@
+--------------------------------------
+Create the Conda environment for NeMo
+--------------------------------------
+Carlos Daniel Hernández mena
+carlosm@ru.is
+--------------------------------------
+
+- You have to install in your system:
+
+sox
+libsndfile1
+ffmpeg.
+
+- Create the conda environment
+
+$ conda create -n nemo_r150 python=3.7 anaconda
+
+- Activate the environment
+
+$ conda activate nemo_r150
+
+- Install Pytorch
+
+$ conda install pytorch torchvision torchaudio cudatoolkit -c pytorch
+
+- Install NVIVIDIA-APEX
+$ git clone https://github.com/NVIDIA/apex
+$ cd apex
+$ pip install -v --disable-pip-version-check --no-cache-dir ./
+	
+- Install some packages
+$ pip install wget
+$ pip install unidecode
+
+- Install NeMo
+
+$ pip install git+https://github.com/NVIDIA/NeMo.git@r1.5.0#egg=nemo_toolkit[all]
+	
+- Install LM Decoders
+
+$ git clone https://github.com/NVIDIA/NeMo.git
+$ cd NeMo/scripts/asr_language_modeling/ngram_lm
+$ bash install_beamsearch_decoders.sh
+	
+- Test Instalation
+
+$ python
+$ import nemo
+$ import nemo.collections.asr as nemo_asr
+	
