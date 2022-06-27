@@ -24,7 +24,7 @@ set -eo pipefail
 
 # NOTE! In the future the ASR data, LM training text and pronunciation dictionary
 # will be downloaded from online first, e.g. Clarin
-samromur_root=/data/asr/samromur/samromur_ldc
+samromur_root=/data/asr/samromur/samromur_children_ldc
 samromur_teen=/data/asr/samromur/samromur_teen
 lm_train=/models/samromur/rmh_2020-11-23_uniq.txt
 prondict_orig=/models/samromur/prondict_rmh_2020-12-02.txt
