@@ -104,7 +104,7 @@ for index,row in metadata.iterrows():
 #Search audio files in the Corpus directory
 
 hash_paths={}
-
+	
 for root, dirs, files in os.walk(CORPUS_ROOT):
 	for filename in files:
 		list_filename=filename.split(".")
