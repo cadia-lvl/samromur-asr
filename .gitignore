@@ -5,6 +5,10 @@ s5*/mfcc/
 s5*/steps
 s5*/utils
 s5*/audio/
+s5*/*_data/
+s5*/logs/
+s5*/metadata/
+s5*/feat/
 local_files/
 
 # local scripts
